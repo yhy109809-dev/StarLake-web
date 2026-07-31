@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>徐霞客游历经历图</title>
+  <style>
+    /* ==========================================
+       全局变量 & 基础
+       ========================================== */
+    :root {
+      --ink-dark: #2c1810;
+      --ink-mid: #5c3d2e;
+      --ink-light: #8b7355;
+      --paper: #f7f1e3;
+      --paper-dark: #efe0cc;
+      --accent-red: #c0392b;
+      --accent-gold: #c4a97d;
+      --accent-blue: #2c5f8a;
+      --spacing-xs: 8px;
+      --spacing-sm: 16px;
+      --spacing-md: 24px;
+      --spacing-lg: 40px;
+      --spacing-xl: 60px;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Noto Serif SC", "Source Han Serif SC", "SimSun", "STSong", serif;
+      background-color: var(--paper);
+      color: var(--ink-dark);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== 宣纸纹理 ===== */
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,115,85,0.015) 2px, rgba(139,115,85,0.015) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,115,85,0.01) 3px, rgba(139,115,85,0.01) 6px),
+        radial-gradient(circle at 15% 20%, rgba(139,115,85,0.04) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(92,61,46,0.03) 0%, transparent 35%),
+        radial-gradient(circle at 50% 90%, rgba(44,24,16,0.06) 0%, transparent 30%);
+    }
+
+    /* ==========================================
+       左侧竖排导航栏
+       ========================================== */
+    .sidebar {
+      width: 180px; min-width: 180px; height: 100vh;
+      background: linear-gradient(180deg, #fefcf8 0%, #f5ecdc 40%, #ebddc4 100%);
+      border-right: 1px solid var(--accent-gold);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 40px 0; position: relative; z-index: 10;
+      box-shadow: 3px 0 30px rgba(44,24,16,0.1), inset -8px 0 15px rgba(0,0,0,0.02);
+    }
+    /* 装订线 */
+    .sidebar::after {
+      content: ""; position: absolute; right: 8px; top: 10%; height: 80%; width: 1px;
+      background: repeating-linear-gradient(0deg, var(--accent-gold) 0px, var(--accent-gold) 3px, transparent 3px, transparent 18px);
+      opacity: 0.5;
+    }
+    /* 卷轴天头 */
+    .scroll-top, .scroll-bottom {
+      position: absolute; left: 0; right: 0; height: 8px; z-index: 2;
+      background: linear-gradient(90deg, #8b6f4e, #c4a97d, #8b6f4e);
+      opacity: 0.6;
+    }
+    .scroll-top { top: 0; }
+    .scroll-bottom { bottom: 0; }
+
+    .sidebar-title {
+      writing-mode: vertical-rl; font-size: 28px; font-weight: bold;
+      letter-spacing: 12px; color: var(--ink-mid); margin-bottom: 50px; position: relative;
+      z-index: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+    .sidebar-title::after {
+      content: ""; position: absolute; bottom: -25px; left: 50%;
+      transform: translateX(-50%); width: 1px; height: 40px;
+      background: linear-gradient(180deg, var(--accent-gold), transparent);
+    }
+    .nav-list {
+      list-style: none; display: flex; flex-direction: column;
+      align-items: center; gap: 26px; flex: 1;
+    }
+    .nav-item {
+      writing-mode: vertical-rl; padding: 18px 10px; cursor: pointer;
+      font-size: 17px; letter-spacing: 5px; color: var(--ink-light);
+      border: 1px solid transparent; border-radius: 3px;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: rgba(255,255,255,0.25); position: relative;
+    }
+    /* 悬停墨迹渗透 */
+    .nav-item::after {
+      content: ""; position: absolute; inset: 0; border-radius: 3px;
+      background: radial-gradient(circle at center, rgba(92,61,46,0.12) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .nav-item:hover { color: var(--ink-dark); border-color: var(--accent-gold); transform: scale(1.03); }
+    .nav-item:hover::after { opacity: 1; }
+    .nav-item.active {
+      color: var(--ink-dark); font-weight: bold;
+      background: rgba(196,169,125,0.2); border-color: var(--accent-gold);
+    }
+    .nav-item.active::before {
+      content: ""; position: absolute; right: -2px; top: 15%; height: 70%;
+      width: 3px; background: var(--accent-red); border-radius: 2px;
+      animation: activeGlow 2s ease-in-out infinite;
+    }
+    @keyframes activeGlow {
+      0%, 100% { box-shadow: 0 0 4px rgba(192,57,43,0.3); }
+      50% { box-shadow: 0 0 12px rgba(192,57,43,0.5); }
+    }
+
+    /* 印章增强 */
+    .sidebar-seal {
+      width: 50px; height: 50px; border: 2px solid var(--accent-red); border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent-red); font-size: 15px; font-weight: bold;
+      writing-mode: vertical-rl; letter-spacing: 2px; rotate: -6deg;
+      box-shadow: 0 2px 8px rgba(192,57,43,0.15);
+      transition: all 0.5s ease;
+    }
+    .sidebar-seal:hover { rotate: 0deg; box-shadow: 0 4px 16px rgba(192,57,43,0.25); }
+
+    /* ===== 右侧主内容区 ===== */
+    .main-content { flex: 1; height: 100vh; overflow-y: auto; position: relative; z-index: 1; }
+
+    /* ===== 页面通用 ===== */
+    .page {
+      min-height: 100vh; display: none; position: relative; overflow: hidden;
+      opacity: 0; transition: opacity 0.6s ease;
+    }
+    .page.active { display: flex; opacity: 1; }
+    .page.entering { animation: pageEnter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+    @keyframes pageEnter {
+      0% { opacity: 0; filter: blur(6px); transform: translateX(10px); }
+      60% { opacity: 1; filter: blur(0); }
+      100% { opacity: 1; filter: blur(0); transform: translateX(0); }
+    }
+
+    /* ===== 公用组件：面板标签 ===== */
+    .panel-label {
+      position: absolute; top: 20px; left: 20px;
+      font-size: 12px; color: var(--ink-light); padding: 5px 12px;
+      border: 1px solid rgba(196,169,125,0.5); border-radius: 3px;
+      background: rgba(255,255,255,0.7); letter-spacing: 2px;
+      pointer-events: none; z-index: 5;
+    }
+
+    /* ===== 墨点粒子（全局） ===== */
+    .ink-particle {
+      position: absolute; width: 4px; height: 4px;
+      background: rgba(44,24,16,0.15); border-radius: 50%;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ==========================================
+       模块一：背景介绍
+       ========================================== */
+    #page1 {
+      flex-direction: row; padding: 0;
+      background: linear-gradient(160deg, #fefcf8 0%, #f7efe0 40%, #efe0cc 100%);
+    }
+    .mod1-map {
+      width: 60%; position: relative;
+      background:
+        radial-gradient(ellipse at 25% 55%, rgba(44,24,16,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 65% 25%, rgba(92,61,46,0.04) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 80%, rgba(44,24,16,0.08) 0%, transparent 50%);
+      border-right: 1px solid rgba(196,169,125,0.6);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mod1-map-inner {
+      width: 82%; height: 78%;
+      border: 1px solid rgba(196,169,125,0.4);
+      border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.4);
+      position: relative; z-index: 1;
+      box-shadow: 0 4px 30px rgba(44,24,16,0.06);
+    }
+    .mod1-map-inner .map-icon { font-size: 56px; opacity: 0.25; margin-bottom: 16px; }
+    .mod1-map-inner .map-label { font-size: 17px; color: var(--ink-light); letter-spacing: 4px; }
+    .mod1-map-inner .map-desc { font-size: 12px; color: #b0a090; margin-top: 8px; letter-spacing: 2px; }
+
+    /* 多层山脉剪影 */
+    .mod1-mountains {
+      position: absolute; bottom: 0; left: 0; right: 0; pointer-events: none; z-index: 0;
+    }
+    .mountain-layer { position: absolute; bottom: 0; left: 0; right: 0; }
+    .mountain-layer.l1 {
+      height: 30%;
+      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.03) 40%, rgba(44,24,16,0.08) 100%);
+      clip-path: polygon(0% 100%, 0% 75%, 6% 55%, 14% 70%, 22% 38%, 32% 58%, 42% 28%, 52% 52%, 62% 22%, 72% 48%, 80% 32%, 90% 50%, 96% 35%, 100% 48%, 100% 100%);
+    }
+    .mountain-layer.l2 {
+      height: 22%;
+      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.04) 50%, rgba(44,24,16,0.12) 100%);
+      clip-path: polygon(0% 100%, 0% 80%, 8% 65%, 18% 78%, 26% 50%, 38% 70%, 50% 40%, 60% 62%, 72% 35%, 84% 60%, 94% 45%, 100% 55%, 100% 100%);
+    }
+    .mountain-layer.l3 {
+      height: 40%;
+      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.05) 35%, rgba(44,24,16,0.07) 70%, rgba(44,24,16,0.03) 100%);
+      clip-path: polygon(0% 95%, 0% 70%, 10% 50%, 20% 65%, 30% 35%, 42% 55%, 55% 25%, 65% 48%, 75% 30%, 85% 55%, 95% 38%, 100% 50%, 100% 100%);
+      opacity: 0.7;
+    }
+
+    /* 飞鸟点缀 */
+    .birds {
+      position: absolute; top: 15%; left: 40%; pointer-events: none; z-index: 1;
+      font-size: 16px; color: rgba(44,24,16,0.15); letter-spacing: 8px;
+      animation: birdsFloat 8s ease-in-out infinite;
+    }
+    @keyframes birdsFloat {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(-6px, -4px); }
+      50% { transform: translate(-12px, 2px); }
+      75% { transform: translate(-4px, 6px); }
+    }
+
+    .mod1-text {
+      width: 40%; padding: 60px 44px;
+      display: flex; flex-direction: column; justify-content: center;
+      overflow-y: auto; position: relative; z-index: 1;
+    }
+    .mod1-text .section-label {
+      font-size: 12px; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 16px;
+    }
+    .mod1-text h2 {
+      font-size: 38px; color: var(--ink-dark); letter-spacing: 8px; margin-bottom: 14px;
+      line-height: 1.3; font-weight: bold;
+    }
+    .mod1-text .subtitle {
+      font-size: 15px; color: var(--ink-light); letter-spacing: 3px; margin-bottom: 36px;
+    }
+    .mod1-text .intro-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%);
+      border: 1px solid rgba(196,169,125,0.5);
+      border-radius: 6px; padding: 32px; line-height: 2;
+      box-shadow: 0 4px 20px rgba(44,24,16,0.04);
+      position: relative;
+    }
+    .mod1-text .intro-card::before {
+      content: "❝"; position: absolute; top: -14px; left: 20px;
+      font-size: 30px; color: var(--accent-gold); opacity: 0.5;
+    }
+    .mod1-text .intro-card h3 { font-size: 18px; color: var(--ink-mid); margin-bottom: 16px; letter-spacing: 3px; }
+    .mod1-text .intro-card p { font-size: 15px; color: var(--ink-light); }
+    .mod1-text .intro-card .placeholder-line {
+      display: block; height: 12px; background: rgba(196,169,125,0.12);
+      border-radius: 3px; margin-bottom: 10px;
+    }
+    .mod1-text .intro-card .placeholder-line:nth-child(4) { width: 82%; }
+    .mod1-text .intro-card .placeholder-line:nth-child(5) { width: 68%; }
+    .mod1-text .intro-card .placeholder-line:nth-child(6) { width: 88%; }
+
+    /* ==========================================
+       模块二：前期名山漫游
+       ========================================== */
+    #page2 {
+      flex-direction: row; padding: 0;
+      background: linear-gradient(160deg, #f8f4ec 0%, #f2eadd 100%);
+    }
+    .mod2-dem {
+      width: 70%; position: relative;
+      background: linear-gradient(180deg,
+        #eaf2e5 0%, #dce8cc 12%, #cddca0 25%, #c0ce80 38%,
+        #b4b868 50%, #a89860 62%, #947848 76%, #a09080 88%, #ddd8cf 100%
+      );
+      border-right: 1px solid rgba(196,169,125,0.5);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    /* DEM 等高线纹理 */
+    .contour-lines {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(0,0,0,0.02) 14px, rgba(0,0,0,0.02) 15px),
+        repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.015) 20px, rgba(0,0,0,0.015) 21px);
+    }
+    .mod2-dem-inner {
+      width: 88%; height: 82%; position: relative; z-index: 1;
+      border: 1px solid rgba(139,115,85,0.4); border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+    }
+    .mod2-dem-inner .dem-label {
+      position: absolute; top: 16px; left: 16px;
+      font-size: 13px; color: var(--ink-mid); letter-spacing: 2px;
+    }
+    /* DEM 图例增强 */
+    .dem-legend {
+      position: absolute; bottom: 16px; right: 16px;
+      background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 4px;
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 10px; color: var(--ink-mid); border: 1px solid rgba(196,169,125,0.4);
+    }
+    .dem-legend .bar {
+      width: 130px; height: 8px; border-radius: 3px;
+      background: linear-gradient(90deg, #eaf2e5, #dce8cc, #cddca0, #c0ce80, #b4b868, #a89860, #947848, #ddd8cf);
+    }
+    .dem-legend .labels { display: flex; justify-content: space-between; }
+    /* 附图 */
+    .inset-map {
+      position: absolute; top: 50px; right: 20px;
+      width: 100px; height: 80px;
+      border: 1px solid rgba(139,115,85,0.4); border-radius: 4px;
+      background: rgba(255,255,255,0.5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: var(--ink-light); letter-spacing: 2px; text-align: center;
+      box-shadow: 0 2px 8px rgba(44,24,16,0.05);
+    }
+
+    /* 名山点位 — 增强呼吸 */
+    .mountain-dot {
+      position: absolute; width: 20px; height: 20px;
+      background: var(--accent-red); border-radius: 50%;
+      cursor: pointer; z-index: 5;
+      box-shadow: 0 0 12px rgba(192,57,43,0.35), 0 0 24px rgba(192,57,43,0.1);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      animation: dotBreathe 3s ease-in-out infinite;
+    }
+    @keyframes dotBreathe {
+      0%, 100% { box-shadow: 0 0 12px rgba(192,57,43,0.35), 0 0 24px rgba(192,57,43,0.1); }
+      50% { box-shadow: 0 0 20px rgba(192,57,43,0.5), 0 0 36px rgba(192,57,43,0.15); }
+    }
+    .mountain-dot::after {
+      content: ""; position: absolute; top: -5px; left: -5px;
+      width: 30px; height: 30px; border: 2px solid var(--accent-red);
+      border-radius: 50%; animation: pulseRipple 2.5s ease-out infinite; opacity: 0;
+    }
+    @keyframes pulseRipple {
+      0% { transform: scale(0.8); opacity: 0.6; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+    .mountain-dot:hover { transform: scale(1.4); z-index: 6; box-shadow: 0 0 24px rgba(192,57,43,0.6); }
+    .mountain-dot .dot-label {
+      position: absolute; left: 26px; top: -8px;
+      white-space: nowrap; font-size: 12px; color: var(--ink-dark);
+      background: rgba(255,255,255,0.9); padding: 3px 10px;
+      border-radius: 3px; border: 1px solid rgba(196,169,125,0.5);
+      pointer-events: none; opacity: 0.85; transition: all 0.3s ease;
+    }
+    .mountain-dot:hover .dot-label { background: rgba(255,255,255,1); transform: translateX(4px); }
+
+    /* 右侧弹窗面板 */
+    .mod2-popup {
+      width: 30%; padding: 0;
+      display: flex; flex-direction: column;
+      background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.35) 100%);
+      overflow-y: auto; position: relative;
+    }
+    .mod2-popup .popup-empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      color: #b0a090; font-size: 14px; letter-spacing: 3px; transition: all 0.4s ease;
+    }
+    .mod2-popup .popup-empty .popup-icon { font-size: 38px; opacity: 0.2; margin-bottom: 14px; }
+    .mod2-popup .popup-detail {
+      display: none; padding: 32px 24px; flex-direction: column;
+      animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    @keyframes slideIn {
+      0% { opacity: 0; transform: translateY(16px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .mod2-popup .popup-detail.show { display: flex; }
+    .mod2-popup .popup-detail h3 {
+      font-size: 26px; color: var(--ink-dark); letter-spacing: 5px; margin-bottom: 10px;
+      padding-bottom: 14px; border-bottom: 1px solid rgba(196,169,125,0.4);
+    }
+    .mod2-popup .popup-detail .mountain-img {
+      height: 150px; background: linear-gradient(135deg, rgba(196,169,125,0.1) 0%, rgba(196,169,125,0.05) 100%);
+      border-radius: 6px; margin: 18px 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #b0a090; font-size: 13px; letter-spacing: 2px;
+      border: 1px dashed rgba(196,169,125,0.4);
+    }
+    .mod2-popup .popup-detail .mountain-info {
+      font-size: 14px; color: var(--ink-light); line-height: 2;
+    }
+    .mod2-popup .popup-detail .mountain-info .placeholder-line {
+      display: block; height: 11px; background: rgba(196,169,125,0.1);
+      border-radius: 3px; margin-bottom: 7px;
+    }
+    .mod2-popup .popup-detail .audio-hint {
+      margin-top: 22px; font-size: 12px; color: var(--ink-light);
+      padding: 10px; border: 1px dashed rgba(196,169,125,0.4); border-radius: 4px;
+      text-align: center; letter-spacing: 2px;
+    }
+
+    /* ==========================================
+       模块三：后期万里遐征
+       ========================================== */
+    #page3 {
+      flex-direction: column; padding: 0;
+      background: linear-gradient(180deg, #faf6ef 0%, #efe0cc 100%);
+    }
+    .mod3-map {
+      width: 100%; height: 100%; position: relative;
+      background:
+        radial-gradient(ellipse at 50% 65%, rgba(44,24,16,0.06) 0%, transparent 55%),
+        radial-gradient(ellipse at 25% 25%, rgba(92,61,46,0.04) 0%, transparent 40%),
+        linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
+    }
+    .mod3-map-inner {
+      position: absolute; inset: 30px;
+      border: 1px solid rgba(196,169,125,0.4); border-radius: 10px;
+      background: rgba(255,255,255,0.3); overflow: hidden;
+    }
+    .mod3-map-inner .map-area-label {
+      position: absolute; top: 16px; left: 16px;
+      font-size: 12px; color: var(--ink-light); letter-spacing: 3px; z-index: 2;
+    }
+    /* 指南针装饰 */
+    .compass {
+      position: absolute; top: 16px; right: 20px; z-index: 2;
+      width: 50px; height: 50px; border: 1px solid rgba(196,169,125,0.4);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.6); font-size: 12px; color: var(--ink-light);
+      letter-spacing: 2px;
+    }
+
+    /* 轨迹动画增强 */
+    .mod3-trajectory {
+      position: absolute; width: 100%; height: 100%; pointer-events: none;
+    }
+    .trajectory-line {
+      fill: none; stroke: var(--accent-blue); stroke-width: 3;
+      stroke-dasharray: 10 6; stroke-linecap: round;
+      animation: dashFlow 2s linear infinite;
+      opacity: 0.55; filter: drop-shadow(0 0 6px rgba(44,95,138,0.3));
+    }
+    @keyframes dashFlow { to { stroke-dashoffset: -32; } }
+    .trajectory-line.secondary { stroke-width: 2; opacity: 0.3; stroke-dasharray: 6 8; filter: none; }
+    .trajectory-line.tertiary { stroke-width: 1.5; opacity: 0.2; stroke-dasharray: 4 10; filter: none; }
+
+    /* 节点闪烁 */
+    .route-node {
+      position: absolute; width: 14px; height: 14px;
+      background: var(--accent-blue); border-radius: 50%;
+      border: 2px solid #fff; z-index: 3;
+      box-shadow: 0 0 8px rgba(26,82,118,0.5), 0 0 20px rgba(26,82,118,0.15);
+      cursor: default; transition: transform 0.3s ease;
+      animation: nodeGlow 2.5s ease-in-out infinite;
+    }
+    @keyframes nodeGlow {
+      0%, 100% { box-shadow: 0 0 8px rgba(26,82,118,0.5), 0 0 20px rgba(26,82,118,0.15); }
+      50% { box-shadow: 0 0 14px rgba(26,82,118,0.7), 0 0 28px rgba(26,82,118,0.25); }
+    }
+    .route-node:hover { transform: scale(1.5); z-index: 5; }
+    .route-node .node-label {
+      position: absolute; white-space: nowrap;
+      font-size: 11px; color: var(--accent-blue);
+      background: rgba(255,255,255,0.85); padding: 2px 7px;
+      border-radius: 2px; opacity: 0.7; transition: opacity 0.3s;
+    }
+    .route-node:hover .node-label { opacity: 1; }
+    .route-node .node-label.top { bottom: 18px; left: 50%; transform: translateX(-50%); }
+    .route-node .node-label.bottom { top: 18px; left: 50%; transform: translateX(-50%); }
+    .route-node .node-label.left { right: 18px; top: 50%; transform: translateY(-50%); }
+    .route-node .node-label.right { left: 18px; top: 50%; transform: translateY(-50%); }
+
+    /* ==========================================
+       模块四：文学与科学价值
+       ========================================== */
+    #page4 {
+      flex-direction: column; padding: 0; position: relative;
+      background: linear-gradient(180deg, #f8f4eb 0%, #efe0cc 100%);
+    }
+    .mod4-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 55%, rgba(44,24,16,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 35%, rgba(92,61,46,0.04) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    /* 红蓝轨迹叠加 */
+    .mod4-trails {
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .mod4-trails .trail-line {
+      position: absolute; width: 85%; height: 2px; border-radius: 1px;
+    }
+    .mod4-trails .trail-red {
+      top: 12%; left: 8%; background: linear-gradient(90deg, transparent 0%, rgba(192,57,43,0.25) 15%, rgba(192,57,43,0.25) 85%, transparent 100%);
+      rotate: 10deg;
+    }
+    .mod4-trails .trail-blue {
+      top: 22%; left: 5%; background: linear-gradient(90deg, transparent 0%, rgba(44,95,138,0.25) 15%, rgba(44,95,138,0.25) 85%, transparent 100%);
+      rotate: -6deg;
+    }
+    .mod4-trails .trail-red-2 {
+      top: 58%; left: 8%; background: linear-gradient(90deg, transparent 0%, rgba(192,57,43,0.2) 15%, rgba(192,57,43,0.2) 85%, transparent 100%);
+      rotate: -12deg;
+    }
+    .mod4-trails .trail-blue-2 {
+      top: 75%; left: 10%; background: linear-gradient(90deg, transparent 0%, rgba(44,95,138,0.2) 15%, rgba(44,95,138,0.2) 85%, transparent 100%);
+      rotate: 8deg;
+    }
+    /* 轨迹图例 */
+    .mod4-legend {
+      position: absolute; top: 60px; right: 40px; z-index: 3;
+      display: flex; gap: 20px; font-size: 12px; color: var(--ink-light);
+    }
+    .mod4-legend span { display: flex; align-items: center; gap: 6px; }
+    .mod4-legend .leg-red { width: 20px; height: 2px; background: var(--accent-red); border-radius: 1px; }
+    .mod4-legend .leg-blue { width: 20px; height: 2px; background: var(--accent-blue); border-radius: 1px; }
+
+    .mod4-split {
+      position: relative; z-index: 2;
+      display: flex; width: 100%; height: 100%;
+    }
+    .mod4-left, .mod4-right {
+      width: 50%; padding: 55px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .mod4-left {
+      border-right: 1px solid rgba(196,169,125,0.4);
+      background: rgba(255,255,255,0.2);
+    }
+    .mod4-right { background: rgba(255,255,255,0.1); }
+
+    .mod4-left h3, .mod4-right h3 {
+      font-size: 26px; color: var(--ink-dark); letter-spacing: 6px; margin-bottom: 12px;
+    }
+    .mod4-left .section-tag, .mod4-right .section-tag {
+      font-size: 13px; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 30px;
+    }
+    .value-item {
+      padding: 18px 20px; margin-bottom: 14px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%);
+      border-radius: 6px; border-left: 3px solid var(--accent-gold);
+      box-shadow: 0 2px 10px rgba(44,24,16,0.03);
+      transition: all 0.3s ease;
+    }
+    .value-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 16px rgba(44,24,16,0.06);
+      border-left-color: var(--accent-red);
+    }
+    .mod4-right .value-item { border-left-color: #8ba8c4; }
+    .mod4-right .value-item:hover { border-left-color: var(--accent-blue); }
+    .value-item h4 { font-size: 15px; color: var(--ink-mid); margin-bottom: 6px; letter-spacing: 2px; }
+    .value-item .placeholder-line {
+      display: block; height: 9px; background: rgba(196,169,125,0.08);
+      border-radius: 3px; margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== 左侧竖排导航 ===== -->
+  <nav class="sidebar">
+    <div class="scroll-top"></div>
+    <div class="sidebar-title">记游客霞徐</div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-page="page1">绍介景背</li>
+      <li class="nav-item" data-page="page2">游漫山名前</li>
+      <li class="nav-item" data-page="page3">征遐里万后</li>
+      <li class="nav-item" data-page="page4">值价学科与学文</li>
+    </ul>
+    <div class="sidebar-seal">客霞</div>
+    <div class="scroll-bottom"></div>
+  </nav>
+
+  <!-- ===== 右侧主内容区 ===== -->
+  <main class="main-content">
+
+    <!-- ==================== 模块一：背景介绍 ==================== -->
+    <section class="page active" id="page1">
+      <div class="mod1-map">
+        <span class="panel-label">水墨风中国古地图底图（含游历路线）</span>
+        <div class="mod1-map-inner">
+          <div class="map-icon">🏔</div>
+          <div class="map-label">古地图占位区域</div>
+          <div class="map-desc">后期替换为水墨风格地图 + 游历路线</div>
+        </div>
+        <div class="mod1-mountains">
+          <div class="mountain-layer l3"></div>
+          <div class="mountain-layer l2"></div>
+          <div class="mountain-layer l1"></div>
+        </div>
+        <div class="birds">◝ ◝ ◜</div>
+      </div>
+      <div class="mod1-text">
+        <div class="section-label">【 模块一 】</div>
+        <h2>背景介绍</h2>
+        <p class="subtitle">—— 千古奇人，旷世游圣 ——</p>
+        <div class="intro-card">
+          <h3>开篇科普</h3>
+          <p>徐霞客（1587 — 1641），名弘祖，字振之，号霞客，明代地理学家、旅行家、文学家。</p>
+          <p style="margin-top:14px;">他一生志在四方，足迹遍及今21个省、市、自治区，"达人所之未达，探人所之未知"。</p>
+          <span class="placeholder-line"></span>
+          <span class="placeholder-line"></span>
+          <span class="placeholder-line"></span>
+          <span class="placeholder-line"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模块二：前期名山漫游 ==================== -->
+    <section class="page" id="page2">
+      <div class="mod2-dem">
+        <span class="panel-label">DEM 地形高程地图（中国东南区域）</span>
+        <div class="contour-lines"></div>
+        <div class="mod2-dem-inner">
+          <div class="dem-label">前期游历路线图</div>
+          <div class="dem-legend">
+            <div class="bar"></div>
+            <div class="labels">
+              <span>平原</span><span>丘陵</span><span>低山</span><span>高山</span><span>雪峰</span>
+            </div>
+          </div>
+          <div class="inset-map">全国区位<br>附图</div>
+          <!-- 名山点位 -->
+          <div class="mountain-dot" style="top: 38%; left: 62%;" data-mountain="tianmu">
+            <span class="dot-label">天台山</span>
+          </div>
+          <div class="mountain-dot" style="top: 48%; left: 55%;" data-mountain="yandang">
+            <span class="dot-label">雁荡山</span>
+          </div>
+          <div class="mountain-dot" style="top: 22%; left: 48%;" data-mountain="huangshan">
+            <span class="dot-label">黄山</span>
+          </div>
+          <div class="mountain-dot" style="top: 62%; left: 38%;" data-mountain="wuyi">
+            <span class="dot-label">武夷山</span>
+          </div>
+          <div class="mountain-dot" style="top: 30%; left: 30%;" data-mountain="lushan">
+            <span class="dot-label">庐山</span>
+          </div>
+        </div>
+      </div>
+      <div class="mod2-popup">
+        <div class="popup-empty" id="popup-empty">
+          <div class="popup-icon">📍</div>
+          点击左侧朱砂点位<br>查看名山详情
+        </div>
+        <div class="popup-detail" id="popup-tianmu">
+          <h3>天台山</h3>
+          <div class="mountain-img">[ 天台山图片 ]</div>
+          <div class="mountain-info">
+            <p>徐霞客首次出游之地，万历四十一年（1613年）游天台。</p>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+        </div>
+        <div class="popup-detail" id="popup-yandang">
+          <h3>雁荡山</h3>
+          <div class="mountain-img">[ 雁荡山图片 ]</div>
+          <div class="mountain-info">
+            <p>徐霞客三游雁荡，寻访大小龙湫，考证山形水脉。</p>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+        </div>
+        <div class="popup-detail" id="popup-huangshan">
+          <h3>黄山</h3>
+          <div class="mountain-img">[ 黄山图片 ]</div>
+          <div class="mountain-info">
+            <p>徐霞客登黄山后赞叹："薄海内外之名山，无如徽之黄山。"</p>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+        </div>
+        <div class="popup-detail" id="popup-wuyi">
+          <h3>武夷山</h3>
+          <div class="mountain-img">[ 武夷山图片 ]</div>
+          <div class="mountain-info">
+            <p>徐霞客游武夷九曲，详细记载了丹霞地貌特征。</p>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+        </div>
+        <div class="popup-detail" id="popup-lushan">
+          <h3>庐山</h3>
+          <div class="mountain-img">[ 庐山图片 ]</div>
+          <div class="mountain-info">
+            <p>徐霞客游庐山，考察瀑布与地质构造。</p>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模块三：后期万里遐征 ==================== -->
+    <section class="page" id="page3">
+      <div class="mod3-map">
+        <div class="mod3-map-inner">
+          <div class="map-area-label">中国南方全域动态地图 — 蓝色超长轨迹（西南万里遐征）</div>
+          <div class="compass">北 ↑</div>
+          <svg class="mod3-trajectory" viewBox="0 0 1200 600" preserveAspectRatio="none">
+            <path class="trajectory-line"
+              d="M 180 200 C 250 180, 300 250, 380 220 C 450 190, 500 300, 580 280 C 650 260, 700 350, 780 380 C 850 400, 880 350, 920 320 C 960 290, 1000 340, 1080 300" />
+            <path class="trajectory-line secondary"
+              d="M 580 280 C 620 240, 680 200, 740 160 C 780 130, 820 120, 860 100" />
+            <path class="trajectory-line tertiary"
+              d="M 780 380 C 820 420, 850 460, 900 480 C 940 500, 980 470, 1040 440" />
+          </svg>
+          <div class="route-node" style="top: 28%; left: 18%;"><span class="node-label right">杭州</span></div>
+          <div class="route-node" style="top: 24%; left: 28%;"><span class="node-label bottom">南昌</span></div>
+          <div class="route-node" style="top: 35%; left: 38%;"><span class="node-label bottom">衡阳</span></div>
+          <div class="route-node" style="top: 42%; left: 52%;"><span class="node-label bottom">桂林</span></div>
+          <div class="route-node" style="top: 52%; left: 62%;"><span class="node-label bottom">贵阳</span></div>
+          <div class="route-node" style="top: 45%; left: 72%;"><span class="node-label top">昆明</span></div>
+          <div class="route-node" style="top: 58%; left: 80%;"><span class="node-label bottom">大理</span></div>
+          <div class="route-node" style="top: 38%; left: 88%;"><span class="node-label top">腾冲</span></div>
+          <div class="route-node" style="top: 18%; left: 62%;"><span class="node-label top">长沙</span></div>
+          <div class="route-node" style="top: 72%; left: 82%;"><span class="node-label right">丽江</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模块四：文学与科学价值 ==================== -->
+    <section class="page" id="page4">
+      <div class="mod4-bg"></div>
+      <div class="mod4-trails">
+        <div class="trail-line trail-red"></div>
+        <div class="trail-line trail-blue"></div>
+        <div class="trail-line trail-red-2"></div>
+        <div class="trail-line trail-blue-2"></div>
+      </div>
+      <div class="mod4-legend">
+        <span><span class="leg-red"></span> 前期路线</span>
+        <span><span class="leg-blue"></span> 后期路线</span>
+      </div>
+      <div class="mod4-split">
+        <div class="mod4-left">
+          <h3>地理科学价值</h3>
+          <div class="section-tag">—— 科学先驱，实地考察 ——</div>
+          <div class="value-item">
+            <h4>喀斯特地貌研究</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="value-item">
+            <h4>江河源流考证</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="value-item">
+            <h4>火山与地热记载</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+        </div>
+        <div class="mod4-right">
+          <h3>文学艺术价值</h3>
+          <div class="section-tag">—— 文采斐然，游记典范 ——</div>
+          <div class="value-item">
+            <h4>日记体游记文学</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="value-item">
+            <h4>山水描写艺术</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+          <div class="value-item">
+            <h4>人文风俗记录</h4>
+            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== 脚本 ===== -->
+  <script>
+    // ====== 导航切换（带动画） ======
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const targetPageId = this.getAttribute('data-page');
+        const targetPage = document.getElementById(targetPageId);
+
+        // 更新导航状态
+        navItems.forEach(n => n.classList.remove('active'));
+        this.classList.add('active');
+
+        // 页面切换动画
+        pages.forEach(p => {
+          if (p.id === targetPageId) {
+            p.classList.add('active');
+            p.classList.remove('entering');
+            void p.offsetWidth; // 强制回流
+            p.classList.add('entering');
+          } else {
+            p.classList.remove('active', 'entering');
+          }
+        });
+      });
+    });
+
+    // ====== 模块二：名山点位点击 ======
+    const dots = document.querySelectorAll('.mountain-dot');
+    const popupEmpty = document.getElementById('popup-empty');
+    const allDetails = document.querySelectorAll('.popup-detail');
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const mountainId = this.getAttribute('data-mountain');
+        popupEmpty.style.display = 'none';
+        allDetails.forEach(d => d.classList.remove('show'));
+        const targetDetail = document.getElementById('popup-' + mountainId);
+        if (targetDetail) {
+          targetDetail.classList.add('show');
+        }
+      });
+    });
+
+    document.querySelector('.mod2-popup').addEventListener('click', function(e) {
+      if (e.target === this) {
+        allDetails.forEach(d => d.classList.remove('show'));
+        popupEmpty.style.display = 'flex';
+      }
+    });
+
+    // ====== 首次加载入场 ======
+    const firstPage = document.querySelector('.page.active');
+    if (firstPage) {
+      firstPage.classList.remove('entering');
+      void firstPage.offsetWidth;
+      firstPage.classList.add('entering');
+    }
+  </script>
+
+</body>
+</html>
