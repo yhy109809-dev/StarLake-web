@@ -73,7 +73,8 @@
     .scroll-bottom { bottom: 0; }
 
     .sidebar-title {
-      writing-mode: vertical-rl; font-size: 28px; font-weight: bold;
+      width: 1em; word-break: break-all; text-align: center;
+      font-size: 28px; font-weight: bold;
       letter-spacing: 12px; color: var(--ink-mid); margin-bottom: 50px; position: relative;
       z-index: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
     }
@@ -87,7 +88,8 @@
       align-items: center; gap: 26px; flex: 1;
     }
     .nav-item {
-      writing-mode: vertical-rl; padding: 18px 10px; cursor: pointer;
+      width: 1em; word-break: break-all; text-align: center;
+      padding: 18px 10px; cursor: pointer;
       font-size: 17px; letter-spacing: 5px; color: var(--ink-light);
       border: 1px solid transparent; border-radius: 3px;
       transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -106,7 +108,7 @@
       background: rgba(196,169,125,0.2); border-color: var(--accent-gold);
     }
     .nav-item.active::before {
-      content: ""; position: absolute; right: -2px; top: 15%; height: 70%;
+      content: ""; position: absolute; left: -2px; top: 15%; height: 70%;
       width: 3px; background: var(--accent-red); border-radius: 2px;
       animation: activeGlow 2s ease-in-out infinite;
     }
@@ -114,17 +116,6 @@
       0%, 100% { box-shadow: 0 0 4px rgba(192,57,43,0.3); }
       50% { box-shadow: 0 0 12px rgba(192,57,43,0.5); }
     }
-
-    /* 印章增强 */
-    .sidebar-seal {
-      width: 50px; height: 50px; border: 2px solid var(--accent-red); border-radius: 3px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--accent-red); font-size: 15px; font-weight: bold;
-      writing-mode: vertical-rl; letter-spacing: 2px; rotate: -6deg;
-      box-shadow: 0 2px 8px rgba(192,57,43,0.15);
-      transition: all 0.5s ease;
-    }
-    .sidebar-seal:hover { rotate: 0deg; box-shadow: 0 4px 16px rgba(192,57,43,0.25); }
 
     /* ===== 右侧主内容区 ===== */
     .main-content { flex: 1; height: 100vh; overflow-y: auto; position: relative; z-index: 1; }
@@ -562,7 +553,6 @@
       <li class="nav-item" data-page="page3">后期万里遐征</li>
       <li class="nav-item" data-page="page4">文学与科学价值</li>
     </ul>
-    <div class="sidebar-seal">霞客</div>
     <div class="scroll-bottom"></div>
   </nav>
 
