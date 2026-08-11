@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>徐霞客游历经历图</title>
   <meta name="description" content="徐霞客游历经历可视化 - 展示明代地理学家徐霞客一生的旅行足迹与科学贡献">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     /* ==========================================
        全局变量 & 基础
@@ -18,13 +19,13 @@
       --accent-red: #c0392b;
       --accent-gold: #c4a97d;
       --accent-blue: #2c5f8a;
-      --spacing-xs: 8px;
-      --spacing-sm: 16px;
-      --spacing-md: 24px;
-      --spacing-lg: 40px;
-      --spacing-xl: 60px;
     }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    @font-face {
+      font-family: 'InkBrush';
+      src: local('Noto Serif SC'), local('Source Han Serif SC'), local('SimSun'), local('STSong'), serif;
+    }
 
     body {
       font-family: "Noto Serif SC", "Source Han Serif SC", "SimSun", "STSong", serif;
@@ -47,54 +48,53 @@
     }
 
     /* ==========================================
-       左侧竖排导航栏
+       左侧导航栏
        ========================================== */
     .sidebar {
       width: 220px; min-width: 220px; height: 100vh;
       background: linear-gradient(180deg, #fefcf8 0%, #f5ecdc 40%, #ebddc4 100%);
       border-right: 1px solid var(--accent-gold);
       display: flex; flex-direction: column; align-items: center;
-      padding: 40px 0; position: relative; z-index: 10;
+      padding: 36px 0 20px; position: relative; z-index: 10;
       box-shadow: 3px 0 30px rgba(44,24,16,0.1), inset -8px 0 15px rgba(0,0,0,0.02);
     }
-    /* 装订线 */
     .sidebar::after {
-      content: ""; position: absolute; right: 8px; top: 10%; height: 80%; width: 1px;
+      content: ""; position: absolute; right: 8px; top: 8%; height: 84%; width: 1px;
       background: repeating-linear-gradient(0deg, var(--accent-gold) 0px, var(--accent-gold) 3px, transparent 3px, transparent 18px);
       opacity: 0.5;
     }
-    /* 卷轴天头 */
     .scroll-top, .scroll-bottom {
-      position: absolute; left: 0; right: 0; height: 8px; z-index: 2;
+      position: absolute; left: 0; right: 0; height: 6px; z-index: 2;
       background: linear-gradient(90deg, #8b6f4e, #c4a97d, #8b6f4e);
-      opacity: 0.6;
+      opacity: 0.55;
     }
     .scroll-top { top: 0; }
     .scroll-bottom { bottom: 0; }
 
     .sidebar-title {
-      font-size: 28px; font-weight: bold;
-      letter-spacing: 12px; color: var(--ink-mid); margin-bottom: 50px; position: relative;
+      font-size: 24px; font-weight: bold;
+      letter-spacing: 8px; color: var(--ink-mid); margin-bottom: 20px; position: relative;
       z-index: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
       text-align: center; white-space: nowrap;
+      writing-mode: vertical-rl;
     }
     .sidebar-title::after {
-      content: ""; position: absolute; bottom: -25px; left: 50%;
-      transform: translateX(-50%); width: 1px; height: 40px;
+      content: ""; position: absolute; bottom: -20px; left: 50%;
+      transform: translateX(-50%); width: 1px; height: 30px;
       background: linear-gradient(180deg, var(--accent-gold), transparent);
     }
+
     .nav-list {
       list-style: none; display: flex; flex-direction: column;
-      align-items: center; gap: 26px; flex: 1;
+      align-items: center; gap: 20px; flex: 1; margin-top: 20px;
     }
     .nav-item {
-      padding: 12px 16px; cursor: pointer; white-space: nowrap;
-      font-size: 16px; letter-spacing: 2px; color: var(--ink-light);
+      padding: 8px 14px; cursor: pointer; white-space: nowrap;
+      font-size: 14px; letter-spacing: 2px; color: var(--ink-light);
       border: 1px solid transparent; border-radius: 3px;
       transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       background: rgba(255,255,255,0.25); position: relative;
     }
-    /* 悬停墨迹渗透 */
     .nav-item::after {
       content: ""; position: absolute; inset: 0; border-radius: 3px;
       background: radial-gradient(circle at center, rgba(92,61,46,0.12) 0%, transparent 70%);
@@ -116,8 +116,24 @@
       50% { box-shadow: 0 0 12px rgba(192,57,43,0.5); }
     }
 
+    /* 图例区 */
+    .sidebar-legend {
+      margin-top: auto; padding: 12px; text-align: center;
+      font-size: 11px; color: var(--ink-light); letter-spacing: 2px;
+      border-top: 1px dashed rgba(196,169,125,0.4);
+      width: 80%;
+    }
+    .sidebar-legend .legend-item {
+      display: flex; align-items: center; gap: 6px; justify-content: center; margin: 4px 0;
+    }
+    .sidebar-legend .leg-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .sidebar-legend .leg-dot.early { background: #c0392b; }
+    .sidebar-legend .leg-dot.late { background: #2c5f8a; }
+
     /* ===== 右侧主内容区 ===== */
-    .main-content { flex: 1; height: 100vh; overflow-y: auto; position: relative; z-index: 1; }
+    .main-content { flex: 1; height: 100vh; overflow-y: auto; position: relative; z-index: 1; scroll-behavior: smooth; }
 
     /* ===== 页面通用 ===== */
     .page {
@@ -128,125 +144,80 @@
     .page.entering { animation: pageEnter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
     @keyframes pageEnter {
       0% { opacity: 0; filter: blur(6px); transform: translateX(10px); }
-      60% { opacity: 1; filter: blur(0); }
       100% { opacity: 1; filter: blur(0); transform: translateX(0); }
     }
 
-    /* ===== 公用组件：面板标签 ===== */
     .panel-label {
-      position: absolute; top: 20px; left: 20px;
-      font-size: 12px; color: var(--ink-light); padding: 5px 12px;
+      position: absolute; top: 12px; left: 12px;
+      font-size: 11px; color: var(--ink-light); padding: 4px 10px;
       border: 1px solid rgba(196,169,125,0.5); border-radius: 3px;
-      background: rgba(255,255,255,0.7); letter-spacing: 2px;
-      pointer-events: none; z-index: 5;
+      background: rgba(255,255,255,0.75); letter-spacing: 2px;
+      pointer-events: none; z-index: 999;
     }
 
-    /* ===== 墨点粒子（全局） ===== */
-    .ink-particle {
-      position: absolute; width: 4px; height: 4px;
-      background: rgba(44,24,16,0.15); border-radius: 50%;
-      pointer-events: none; z-index: 0;
+    /* ===== Leaflet 地图古风滤镜 ===== */
+    .ink-map {
+      width: 100%; height: 100%;
+      background: #f7f1e3;
+    }
+    .ink-map .leaflet-tile-pane {
+      filter: sepia(0.45) saturate(0.4) brightness(1.05) contrast(0.85) hue-rotate(350deg);
+    }
+    .ink-map .leaflet-control-zoom a {
+      background: rgba(255,255,255,0.8) !important;
+      color: #5c3d2e !important;
+      border: 1px solid #c4a97d !important;
     }
 
     /* ==========================================
        模块一：背景介绍
        ========================================== */
     #page1 {
-      flex-direction: row; padding: 0;
+      flex-direction: column; padding: 0;
       background: linear-gradient(160deg, #fefcf8 0%, #f7efe0 40%, #efe0cc 100%);
     }
-    .mod1-map {
-      width: 60%; position: relative;
-      background:
-        radial-gradient(ellipse at 25% 55%, rgba(44,24,16,0.06) 0%, transparent 55%),
-        radial-gradient(ellipse at 65% 25%, rgba(92,61,46,0.04) 0%, transparent 45%),
-        radial-gradient(ellipse at 50% 80%, rgba(44,24,16,0.08) 0%, transparent 50%);
-      border-right: 1px solid rgba(196,169,125,0.6);
-      display: flex; align-items: center; justify-content: center;
+    .mod1-hero {
+      position: relative; width: 100%; height: 70%;
+      border-bottom: 1px solid rgba(196,169,125,0.6);
+      overflow: hidden;
     }
-    .mod1-map-inner {
-      width: 82%; height: 78%;
-      border: 1px solid rgba(196,169,125,0.4);
-      border-radius: 8px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.4);
-      position: relative; z-index: 1;
-      box-shadow: 0 4px 30px rgba(44,24,16,0.06);
+    .mod1-map-wrap { width: 100%; height: 100%; position: relative; z-index: 1; }
+    .mod1-overlay {
+      position: absolute; inset: 0; pointer-events: none; z-index: 2;
     }
-    .mod1-map-inner .map-icon { font-size: 56px; opacity: 0.25; margin-bottom: 16px; }
-    .mod1-map-inner .map-label { font-size: 17px; color: var(--ink-light); letter-spacing: 4px; }
-    .mod1-map-inner .map-desc { font-size: 12px; color: #b0a090; margin-top: 8px; letter-spacing: 2px; }
-
-    /* 多层山脉剪影 */
-    .mod1-mountains {
-      position: absolute; bottom: 0; left: 0; right: 0; pointer-events: none; z-index: 0;
+    /* 水墨散开入门动画层 */
+    .ink-reveal {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 0; height: 0; border-radius: 50%;
+      background: radial-gradient(circle, var(--paper) 0%, var(--paper) 70%, transparent 100%);
+      z-index: 10; pointer-events: none;
+      animation: inkReveal 1.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
     }
-    .mountain-layer { position: absolute; bottom: 0; left: 0; right: 0; }
-    .mountain-layer.l1 {
-      height: 30%;
-      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.03) 40%, rgba(44,24,16,0.08) 100%);
-      clip-path: polygon(0% 100%, 0% 75%, 6% 55%, 14% 70%, 22% 38%, 32% 58%, 42% 28%, 52% 52%, 62% 22%, 72% 48%, 80% 32%, 90% 50%, 96% 35%, 100% 48%, 100% 100%);
-    }
-    .mountain-layer.l2 {
-      height: 22%;
-      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.04) 50%, rgba(44,24,16,0.12) 100%);
-      clip-path: polygon(0% 100%, 0% 80%, 8% 65%, 18% 78%, 26% 50%, 38% 70%, 50% 40%, 60% 62%, 72% 35%, 84% 60%, 94% 45%, 100% 55%, 100% 100%);
-    }
-    .mountain-layer.l3 {
-      height: 40%;
-      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.05) 35%, rgba(44,24,16,0.07) 70%, rgba(44,24,16,0.03) 100%);
-      clip-path: polygon(0% 95%, 0% 70%, 10% 50%, 20% 65%, 30% 35%, 42% 55%, 55% 25%, 65% 48%, 75% 30%, 85% 55%, 95% 38%, 100% 50%, 100% 100%);
-      opacity: 0.7;
+    @keyframes inkReveal {
+      0% { width: 0; height: 0; opacity: 1; }
+      100% { width: 300vmax; height: 300vmax; opacity: 0; }
     }
 
-    /* 飞鸟点缀 */
-    .birds {
-      position: absolute; top: 15%; left: 40%; pointer-events: none; z-index: 1;
-      font-size: 16px; color: rgba(44,24,16,0.15); letter-spacing: 8px;
-      animation: birdsFloat 8s ease-in-out infinite;
+    .mod1-bottom {
+      width: 100%; height: 30%; padding: 20px 50px;
+      display: flex; align-items: center; gap: 40px; z-index: 1;
+      background: rgba(255,255,255,0.3);
     }
-    @keyframes birdsFloat {
-      0%, 100% { transform: translate(0, 0); }
-      25% { transform: translate(-6px, -4px); }
-      50% { transform: translate(-12px, 2px); }
-      75% { transform: translate(-4px, 6px); }
+    .mod1-bottom .intro-left {
+      flex-shrink: 0; text-align: right; border-right: 1px solid rgba(196,169,125,0.4); padding-right: 30px;
     }
-
-    .mod1-text {
-      width: 40%; padding: 60px 44px;
-      display: flex; flex-direction: column; justify-content: center;
-      overflow-y: auto; position: relative; z-index: 1;
+    .mod1-bottom .intro-left h2 {
+      font-size: 34px; color: var(--ink-dark); letter-spacing: 8px; font-weight: bold;
     }
-    .mod1-text .section-label {
-      font-size: 12px; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 16px;
+    .mod1-bottom .intro-left .subtitle {
+      font-size: 14px; color: var(--ink-light); letter-spacing: 3px; margin-top: 6px;
     }
-    .mod1-text h2 {
-      font-size: 38px; color: var(--ink-dark); letter-spacing: 8px; margin-bottom: 14px;
-      line-height: 1.3; font-weight: bold;
+    .mod1-bottom .intro-right {
+      font-size: 15px; color: var(--ink-mid); line-height: 2; letter-spacing: 1px;
     }
-    .mod1-text .subtitle {
-      font-size: 15px; color: var(--ink-light); letter-spacing: 3px; margin-bottom: 36px;
+    .mod1-bottom .intro-right em {
+      color: var(--accent-red); font-style: normal; font-weight: bold;
     }
-    .mod1-text .intro-card {
-      background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%);
-      border: 1px solid rgba(196,169,125,0.5);
-      border-radius: 6px; padding: 32px; line-height: 2;
-      box-shadow: 0 4px 20px rgba(44,24,16,0.04);
-      position: relative;
-    }
-    .mod1-text .intro-card::before {
-      content: "❝"; position: absolute; top: -14px; left: 20px;
-      font-size: 30px; color: var(--accent-gold); opacity: 0.5;
-    }
-    .mod1-text .intro-card h3 { font-size: 18px; color: var(--ink-mid); margin-bottom: 16px; letter-spacing: 3px; }
-    .mod1-text .intro-card p { font-size: 15px; color: var(--ink-light); }
-    .mod1-text .intro-card .placeholder-line {
-      display: block; height: 12px; background: rgba(196,169,125,0.12);
-      border-radius: 3px; margin-bottom: 10px;
-    }
-    .mod1-text .intro-card .placeholder-line:nth-child(4) { width: 82%; }
-    .mod1-text .intro-card .placeholder-line:nth-child(5) { width: 68%; }
-    .mod1-text .intro-card .placeholder-line:nth-child(6) { width: 88%; }
 
     /* ==========================================
        模块二：前期名山漫游
@@ -255,130 +226,72 @@
       flex-direction: row; padding: 0;
       background: linear-gradient(160deg, #f8f4ec 0%, #f2eadd 100%);
     }
-    .mod2-dem {
-      width: 70%; position: relative;
-      background: linear-gradient(180deg,
-        #eaf2e5 0%, #dce8cc 12%, #cddca0 25%, #c0ce80 38%,
-        #b4b868 50%, #a89860 62%, #947848 76%, #a09080 88%, #ddd8cf 100%
-      );
+    .mod2-map-area {
+      width: 68%; position: relative;
       border-right: 1px solid rgba(196,169,125,0.5);
-      display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
-    /* DEM 等高线纹理 */
-    .contour-lines {
-      position: absolute; inset: 0; pointer-events: none; z-index: 0;
-      background:
-        repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(0,0,0,0.02) 14px, rgba(0,0,0,0.02) 15px),
-        repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0,0,0,0.015) 20px, rgba(0,0,0,0.015) 21px);
-    }
-    .mod2-dem-inner {
-      width: 88%; height: 82%; position: relative; z-index: 1;
-      border: 1px solid rgba(139,115,85,0.4); border-radius: 8px;
-      background: rgba(255,255,255,0.12);
-    }
-    .mod2-dem-inner .dem-label {
-      position: absolute; top: 16px; left: 16px;
-      font-size: 13px; color: var(--ink-mid); letter-spacing: 2px;
-    }
-    /* DEM 图例增强 */
-    .dem-legend {
-      position: absolute; bottom: 16px; right: 16px;
-      background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 4px;
-      display: flex; flex-direction: column; gap: 4px;
-      font-size: 10px; color: var(--ink-mid); border: 1px solid rgba(196,169,125,0.4);
-    }
-    .dem-legend .bar {
-      width: 130px; height: 8px; border-radius: 3px;
-      background: linear-gradient(90deg, #eaf2e5, #dce8cc, #cddca0, #c0ce80, #b4b868, #a89860, #947848, #ddd8cf);
-    }
-    .dem-legend .labels { display: flex; justify-content: space-between; }
-    /* 附图 */
-    .inset-map {
-      position: absolute; top: 50px; right: 20px;
-      width: 100px; height: 80px;
-      border: 1px solid rgba(139,115,85,0.4); border-radius: 4px;
-      background: rgba(255,255,255,0.5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; color: var(--ink-light); letter-spacing: 2px; text-align: center;
-      box-shadow: 0 2px 8px rgba(44,24,16,0.05);
-    }
+    .mod2-map-wrap { width: 100%; height: 100%; position: relative; z-index: 1; }
 
-    /* 名山点位 — 增强呼吸 */
-    .mountain-dot {
-      position: absolute; width: 20px; height: 20px;
-      background: var(--accent-red); border-radius: 50%;
-      cursor: pointer; z-index: 5;
-      box-shadow: 0 0 12px rgba(192,57,43,0.35), 0 0 24px rgba(192,57,43,0.1);
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-      animation: dotBreathe 3s ease-in-out infinite;
-    }
-    @keyframes dotBreathe {
-      0%, 100% { box-shadow: 0 0 12px rgba(192,57,43,0.35), 0 0 24px rgba(192,57,43,0.1); }
-      50% { box-shadow: 0 0 20px rgba(192,57,43,0.5), 0 0 36px rgba(192,57,43,0.15); }
-    }
-    .mountain-dot::after {
-      content: ""; position: absolute; top: -5px; left: -5px;
-      width: 30px; height: 30px; border: 2px solid var(--accent-red);
-      border-radius: 50%; animation: pulseRipple 2.5s ease-out infinite; opacity: 0;
-    }
-    @keyframes pulseRipple {
-      0% { transform: scale(0.8); opacity: 0.6; }
-      100% { transform: scale(2.2); opacity: 0; }
-    }
-    .mountain-dot:hover { transform: scale(1.4); z-index: 6; box-shadow: 0 0 24px rgba(192,57,43,0.6); }
-    .mountain-dot .dot-label {
-      position: absolute; left: 26px; top: -8px;
-      white-space: nowrap; font-size: 12px; color: var(--ink-dark);
-      background: rgba(255,255,255,0.9); padding: 3px 10px;
-      border-radius: 3px; border: 1px solid rgba(196,169,125,0.5);
-      pointer-events: none; opacity: 0.85; transition: all 0.3s ease;
-    }
-    .mountain-dot:hover .dot-label { background: rgba(255,255,255,1); transform: translateX(4px); }
-
-    /* 右侧弹窗面板 */
-    .mod2-popup {
-      width: 30%; padding: 0;
-      display: flex; flex-direction: column;
-      background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.35) 100%);
+    /* 右侧详情面板 */
+    .mod2-panel {
+      width: 32%; display: flex; flex-direction: column;
+      background: linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.35) 100%);
       overflow-y: auto; position: relative;
     }
-    .mod2-popup .popup-empty {
+    .mod2-panel .panel-empty {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      color: #b0a090; font-size: 14px; letter-spacing: 3px; transition: all 0.4s ease;
+      color: #b0a090; font-size: 14px; letter-spacing: 3px;
     }
-    .mod2-popup .popup-empty .popup-icon { font-size: 38px; opacity: 0.2; margin-bottom: 14px; }
-    .mod2-popup .popup-detail {
-      display: none; padding: 32px 24px; flex-direction: column;
+    .mod2-panel .panel-empty .empty-icon { font-size: 42px; opacity: 0.2; margin-bottom: 14px; }
+    .mod2-panel .panel-detail {
+      display: none; padding: 28px 22px; flex-direction: column;
       animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     @keyframes slideIn {
       0% { opacity: 0; transform: translateY(16px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-    .mod2-popup .popup-detail.show { display: flex; }
-    .mod2-popup .popup-detail h3 {
-      font-size: 26px; color: var(--ink-dark); letter-spacing: 5px; margin-bottom: 10px;
-      padding-bottom: 14px; border-bottom: 1px solid rgba(196,169,125,0.4);
+    .mod2-panel .panel-detail.show { display: flex; }
+    .mod2-panel .panel-detail h3 {
+      font-size: 28px; color: var(--ink-dark); letter-spacing: 6px; margin-bottom: 8px;
+      padding-bottom: 12px; border-bottom: 1px solid rgba(196,169,125,0.4);
     }
-    .mod2-popup .popup-detail .mountain-img {
-      height: 150px; background: linear-gradient(135deg, rgba(196,169,125,0.1) 0%, rgba(196,169,125,0.05) 100%);
-      border-radius: 6px; margin: 18px 0;
-      display: flex; align-items: center; justify-content: center;
-      color: #b0a090; font-size: 13px; letter-spacing: 2px;
-      border: 1px dashed rgba(196,169,125,0.4);
+    .mod2-panel .panel-detail .visit-year {
+      font-size: 13px; color: var(--accent-gold); letter-spacing: 2px; margin-bottom: 16px;
     }
-    .mod2-popup .popup-detail .mountain-info {
+    .mod2-panel .panel-detail .mountain-scene {
+      height: 140px; margin: 14px 0; border-radius: 6px; overflow: hidden;
+      background: linear-gradient(160deg, #d4cfc4 0%, #c8bfae 30%, #b8a890 60%, #c4b898 100%);
+      position: relative;
+    }
+    .mountain-scene .scene-layer { position: absolute; bottom: 0; left: 0; right: 0; }
+    .mountain-scene .scene-layer.l1 {
+      height: 50%;
+      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.08) 50%, rgba(44,24,16,0.2) 100%);
+      clip-path: polygon(0% 100%, 0% 60%, 10% 35%, 25% 55%, 35% 20%, 50% 45%, 65% 15%, 78% 40%, 90% 25%, 100% 50%, 100% 100%);
+    }
+    .mountain-scene .scene-layer.l2 {
+      height: 35%;
+      background: linear-gradient(180deg, transparent 0%, rgba(44,24,16,0.12) 60%, rgba(44,24,16,0.25) 100%);
+      clip-path: polygon(0% 100%, 0% 70%, 15% 50%, 30% 65%, 45% 35%, 60% 55%, 75% 30%, 90% 50%, 100% 40%, 100% 100%);
+    }
+    .mountain-scene .mist {
+      position: absolute; bottom: 20%; left: 0; right: 0; height: 40px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 50%;
+      animation: mistDrift 8s ease-in-out infinite;
+    }
+    @keyframes mistDrift {
+      0%, 100% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+    }
+    .mod2-panel .panel-detail .mountain-info {
       font-size: 14px; color: var(--ink-light); line-height: 2;
     }
-    .mod2-popup .popup-detail .mountain-info .placeholder-line {
-      display: block; height: 11px; background: rgba(196,169,125,0.1);
-      border-radius: 3px; margin-bottom: 7px;
-    }
-    .mod2-popup .popup-detail .audio-hint {
-      margin-top: 22px; font-size: 12px; color: var(--ink-light);
-      padding: 10px; border: 1px dashed rgba(196,169,125,0.4); border-radius: 4px;
-      text-align: center; letter-spacing: 2px;
+    .mod2-panel .panel-detail .mountain-info blockquote {
+      border-left: 2px solid var(--accent-gold); padding-left: 12px;
+      margin: 10px 0; color: var(--ink-mid); font-style: italic;
     }
 
     /* ==========================================
@@ -388,70 +301,60 @@
       flex-direction: column; padding: 0;
       background: linear-gradient(180deg, #faf6ef 0%, #efe0cc 100%);
     }
-    .mod3-map {
-      width: 100%; height: 100%; position: relative;
-      background:
-        radial-gradient(ellipse at 50% 65%, rgba(44,24,16,0.06) 0%, transparent 55%),
-        radial-gradient(ellipse at 25% 25%, rgba(92,61,46,0.04) 0%, transparent 40%),
-        linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
+    .mod3-top {
+      width: 100%; height: 78%; position: relative;
+      border-bottom: 1px solid rgba(196,169,125,0.5);
     }
-    .mod3-map-inner {
-      position: absolute; inset: 30px;
-      border: 1px solid rgba(196,169,125,0.4); border-radius: 10px;
-      background: rgba(255,255,255,0.3); overflow: hidden;
+    .mod3-map-wrap { width: 100%; height: 100%; position: relative; z-index: 1; }
+
+    /* 进度指示器 */
+    .journey-progress {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+      background: rgba(44,95,138,0.15); z-index: 999;
     }
-    .mod3-map-inner .map-area-label {
-      position: absolute; top: 16px; left: 16px;
-      font-size: 12px; color: var(--ink-light); letter-spacing: 3px; z-index: 2;
-    }
-    /* 指南针装饰 */
-    .compass {
-      position: absolute; top: 16px; right: 20px; z-index: 2;
-      width: 50px; height: 50px; border: 1px solid rgba(196,169,125,0.4);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.6); font-size: 12px; color: var(--ink-light);
-      letter-spacing: 2px;
+    .journey-progress .progress-fill {
+      height: 100%; background: var(--accent-blue);
+      width: 0%; transition: width 0.6s ease;
+      box-shadow: 0 0 8px rgba(44,95,138,0.5);
     }
 
-    /* 轨迹动画增强 */
-    .mod3-trajectory {
-      position: absolute; width: 100%; height: 100%; pointer-events: none;
+    .mod3-bottom {
+      width: 100%; height: 22%; padding: 12px 40px;
+      display: flex; align-items: center; gap: 20px; z-index: 1;
+      background: rgba(255,255,255,0.3); position: relative;
     }
-    .trajectory-line {
-      fill: none; stroke: var(--accent-blue); stroke-width: 3;
-      stroke-dasharray: 10 6; stroke-linecap: round;
-      animation: dashFlow 2s linear infinite;
-      opacity: 0.55; filter: drop-shadow(0 0 6px rgba(44,95,138,0.3));
+    .mod3-bottom .timeline-label {
+      font-size: 12px; color: var(--accent-gold); letter-spacing: 3px;
+      writing-mode: vertical-rl; flex-shrink: 0; border-right: 1px solid rgba(196,169,125,0.4); padding-right: 12px;
     }
-    @keyframes dashFlow { to { stroke-dashoffset: -32; } }
-    .trajectory-line.secondary { stroke-width: 2; opacity: 0.3; stroke-dasharray: 6 8; filter: none; }
-    .trajectory-line.tertiary { stroke-width: 1.5; opacity: 0.2; stroke-dasharray: 4 10; filter: none; }
-
-    /* 节点闪烁 */
-    .route-node {
-      position: absolute; width: 14px; height: 14px;
-      background: var(--accent-blue); border-radius: 50%;
-      border: 2px solid #fff; z-index: 3;
-      box-shadow: 0 0 8px rgba(26,82,118,0.5), 0 0 20px rgba(26,82,118,0.15);
-      cursor: default; transition: transform 0.3s ease;
-      animation: nodeGlow 2.5s ease-in-out infinite;
+    .mod3-bottom .timeline-stage {
+      flex: 1; padding: 8px 16px; cursor: pointer;
+      border: 1px solid transparent; border-radius: 4px;
+      transition: all 0.3s ease; text-align: center;
+      background: rgba(255,255,255,0.3);
     }
-    @keyframes nodeGlow {
-      0%, 100% { box-shadow: 0 0 8px rgba(26,82,118,0.5), 0 0 20px rgba(26,82,118,0.15); }
-      50% { box-shadow: 0 0 14px rgba(26,82,118,0.7), 0 0 28px rgba(26,82,118,0.25); }
+    .mod3-bottom .timeline-stage:hover {
+      border-color: var(--accent-gold); background: rgba(255,255,255,0.6);
+      transform: translateY(-2px);
     }
-    .route-node:hover { transform: scale(1.5); z-index: 5; }
-    .route-node .node-label {
-      position: absolute; white-space: nowrap;
-      font-size: 11px; color: var(--accent-blue);
-      background: rgba(255,255,255,0.85); padding: 2px 7px;
-      border-radius: 2px; opacity: 0.7; transition: opacity 0.3s;
+    .mod3-bottom .timeline-stage.active {
+      border-color: var(--accent-blue); background: rgba(44,95,138,0.08);
     }
-    .route-node:hover .node-label { opacity: 1; }
-    .route-node .node-label.top { bottom: 18px; left: 50%; transform: translateX(-50%); }
-    .route-node .node-label.bottom { top: 18px; left: 50%; transform: translateX(-50%); }
-    .route-node .node-label.left { right: 18px; top: 50%; transform: translateY(-50%); }
-    .route-node .node-label.right { left: 18px; top: 50%; transform: translateY(-50%); }
+    .mod3-bottom .timeline-stage .stage-year {
+      font-size: 13px; color: var(--accent-blue); font-weight: bold; letter-spacing: 2px;
+    }
+    .mod3-bottom .timeline-stage .stage-name {
+      font-size: 13px; color: var(--ink-mid); letter-spacing: 2px; margin-top: 4px;
+    }
+    /* 导航按钮 */
+    .timeline-nav {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid var(--accent-gold); background: rgba(255,255,255,0.6);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--ink-mid); transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .timeline-nav:hover { background: rgba(196,169,125,0.2); border-color: var(--ink-mid); }
 
     /* ==========================================
        模块四：文学与科学价值
@@ -460,52 +363,22 @@
       flex-direction: column; padding: 0; position: relative;
       background: linear-gradient(180deg, #f8f4eb 0%, #efe0cc 100%);
     }
-    .mod4-bg {
-      position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse at 30% 55%, rgba(44,24,16,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 70% 35%, rgba(92,61,46,0.04) 0%, transparent 50%);
-      pointer-events: none; z-index: 0;
+    .mod4-header {
+      width: 100%; padding: 24px 40px 0; z-index: 2; text-align: center;
     }
-    /* 红蓝轨迹叠加 */
-    .mod4-trails {
-      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    .mod4-header h2 {
+      font-size: 30px; color: var(--ink-dark); letter-spacing: 8px;
     }
-    .mod4-trails .trail-line {
-      position: absolute; width: 85%; height: 2px; border-radius: 1px;
+    .mod4-header .mod4-sub {
+      font-size: 13px; color: var(--accent-gold); letter-spacing: 3px; margin-top: 6px;
     }
-    .mod4-trails .trail-red {
-      top: 12%; left: 8%; background: linear-gradient(90deg, transparent 0%, rgba(192,57,43,0.25) 15%, rgba(192,57,43,0.25) 85%, transparent 100%);
-      rotate: 10deg;
-    }
-    .mod4-trails .trail-blue {
-      top: 22%; left: 5%; background: linear-gradient(90deg, transparent 0%, rgba(44,95,138,0.25) 15%, rgba(44,95,138,0.25) 85%, transparent 100%);
-      rotate: -6deg;
-    }
-    .mod4-trails .trail-red-2 {
-      top: 58%; left: 8%; background: linear-gradient(90deg, transparent 0%, rgba(192,57,43,0.2) 15%, rgba(192,57,43,0.2) 85%, transparent 100%);
-      rotate: -12deg;
-    }
-    .mod4-trails .trail-blue-2 {
-      top: 75%; left: 10%; background: linear-gradient(90deg, transparent 0%, rgba(44,95,138,0.2) 15%, rgba(44,95,138,0.2) 85%, transparent 100%);
-      rotate: 8deg;
-    }
-    /* 轨迹图例 */
-    .mod4-legend {
-      position: absolute; top: 60px; right: 40px; z-index: 3;
-      display: flex; gap: 20px; font-size: 12px; color: var(--ink-light);
-    }
-    .mod4-legend span { display: flex; align-items: center; gap: 6px; }
-    .mod4-legend .leg-red { width: 20px; height: 2px; background: var(--accent-red); border-radius: 1px; }
-    .mod4-legend .leg-blue { width: 20px; height: 2px; background: var(--accent-blue); border-radius: 1px; }
-
     .mod4-split {
       position: relative; z-index: 2;
-      display: flex; width: 100%; height: 100%;
+      display: flex; width: 100%; flex: 1;
     }
     .mod4-left, .mod4-right {
-      width: 50%; padding: 55px 40px;
-      display: flex; flex-direction: column; justify-content: center;
+      width: 50%; padding: 30px 40px;
+      display: flex; flex-direction: column;
     }
     .mod4-left {
       border-right: 1px solid rgba(196,169,125,0.4);
@@ -514,13 +387,11 @@
     .mod4-right { background: rgba(255,255,255,0.1); }
 
     .mod4-left h3, .mod4-right h3 {
-      font-size: 26px; color: var(--ink-dark); letter-spacing: 6px; margin-bottom: 12px;
-    }
-    .mod4-left .section-tag, .mod4-right .section-tag {
-      font-size: 13px; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 30px;
+      font-size: 22px; color: var(--ink-dark); letter-spacing: 5px; margin-bottom: 8px;
+      padding-bottom: 10px; border-bottom: 1px solid rgba(196,169,125,0.3);
     }
     .value-item {
-      padding: 18px 20px; margin-bottom: 14px;
+      padding: 18px 20px; margin-top: 14px;
       background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%);
       border-radius: 6px; border-left: 3px solid var(--accent-gold);
       box-shadow: 0 2px 10px rgba(44,24,16,0.03);
@@ -533,16 +404,37 @@
     }
     .mod4-right .value-item { border-left-color: #8ba8c4; }
     .mod4-right .value-item:hover { border-left-color: var(--accent-blue); }
-    .value-item h4 { font-size: 15px; color: var(--ink-mid); margin-bottom: 6px; letter-spacing: 2px; }
-    .value-item .placeholder-line {
-      display: block; height: 9px; background: rgba(196,169,125,0.08);
-      border-radius: 3px; margin-bottom: 5px;
+    .value-item h4 { font-size: 15px; color: var(--ink-mid); margin-bottom: 8px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px; }
+    .value-item h4 .v-icon { font-size: 18px; }
+    .value-item p { font-size: 13px; color: var(--ink-light); line-height: 1.8; }
+
+    /* ===== 自定义Leaflet弹窗样式 ===== */
+    .leaflet-popup-content-wrapper {
+      background: rgba(255,252,245,0.95) !important;
+      border: 1px solid #c4a97d !important;
+      border-radius: 6px !important;
+      box-shadow: 0 4px 20px rgba(44,24,16,0.12) !important;
+      font-family: "Noto Serif SC", "SimSun", serif !important;
+      color: #5c3d2e !important;
+    }
+    .leaflet-popup-tip { background: rgba(255,252,245,0.95) !important; }
+    .custom-popup h4 { 
+      margin: 0 0 4px 0; font-size: 15px; color: #2c1810; letter-spacing: 3px;
+      border-bottom: 1px solid rgba(196,169,125,0.4); padding-bottom: 6px;
+    }
+    .custom-popup p { margin: 4px 0; font-size: 12px; color: #8b7355; line-height: 1.7; }
+
+    /* ===== 响应式调整 ===== */
+    @media (max-width: 1200px) {
+      .sidebar { width: 160px; min-width: 160px; }
+      .sidebar-title { font-size: 20px; letter-spacing: 6px; }
+      .nav-item { font-size: 13px; padding: 6px 10px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ===== 左侧竖排导航 ===== -->
+  <!-- ===== 左侧导航 ===== -->
   <nav class="sidebar">
     <div class="scroll-top"></div>
     <div class="sidebar-title">徐霞客游记</div>
@@ -552,6 +444,10 @@
       <li class="nav-item" data-page="page3">后期万里遐征</li>
       <li class="nav-item" data-page="page4">文学与科学价值</li>
     </ul>
+    <div class="sidebar-legend">
+      <div class="legend-item"><span class="leg-dot early"></span> 前期游历</div>
+      <div class="legend-item"><span class="leg-dot late"></span> 后期遐征</div>
+    </div>
     <div class="scroll-bottom"></div>
   </nav>
 
@@ -560,193 +456,175 @@
 
     <!-- ==================== 模块一：背景介绍 ==================== -->
     <section class="page active" id="page1">
-      <div class="mod1-map">
-        <span class="panel-label">水墨风中国古地图底图（含游历路线）</span>
-        <div class="mod1-map-inner">
-          <div class="map-icon">🏔</div>
-          <div class="map-label">古地图占位区域</div>
-          <div class="map-desc">后期替换为水墨风格地图 + 游历路线</div>
-        </div>
-        <div class="mod1-mountains">
-          <div class="mountain-layer l3"></div>
-          <div class="mountain-layer l2"></div>
-          <div class="mountain-layer l1"></div>
-        </div>
-        <div class="birds">◝ ◝ ◜</div>
+      <div class="mod1-hero">
+        <span class="panel-label">大明万里行迹图</span>
+        <div class="mod1-map-wrap" id="map1"></div>
+        <div class="ink-reveal" id="inkReveal"></div>
       </div>
-      <div class="mod1-text">
-        <div class="section-label">【 模块一 】</div>
-        <h2>背景介绍</h2>
-        <p class="subtitle">—— 千古奇人，旷世游圣 ——</p>
-        <div class="intro-card">
-          <h3>开篇科普</h3>
-          <p>徐霞客（1587 — 1641），名弘祖，字振之，号霞客，明代地理学家、旅行家、文学家。</p>
-          <p style="margin-top:14px;">他一生志在四方，足迹遍及今21个省、市、自治区，"达人所之未达，探人所之未知"。</p>
-          <span class="placeholder-line"></span>
-          <span class="placeholder-line"></span>
-          <span class="placeholder-line"></span>
-          <span class="placeholder-line"></span>
+      <div class="mod1-bottom">
+        <div class="intro-left">
+          <h2>徐霞客游记</h2>
+          <p class="subtitle">—— 千古奇人 · 旷世游圣 ——</p>
+        </div>
+        <div class="intro-right">
+          徐霞客（1587—1641），名<em>弘祖</em>，字振之，号霞客，明代地理学家、旅行家、文学家。<br>
+          他自<em>二十二岁</em>出游，三十余年足迹遍及今<em>二十一个省</em>，所到之处"<em>达人所之未达，探人所之未知</em>"。<br>
+          其著《徐霞客游记》六十余万字，是世界最早系统记载<em>喀斯特地貌</em>的科学文献，<br>
+          被李约瑟誉为"<em>一位伟大的地理学家</em>"。
         </div>
       </div>
     </section>
 
     <!-- ==================== 模块二：前期名山漫游 ==================== -->
     <section class="page" id="page2">
-      <div class="mod2-dem">
-        <span class="panel-label">DEM 地形高程地图（中国东南区域）</span>
-        <div class="contour-lines"></div>
-        <div class="mod2-dem-inner">
-          <div class="dem-label">前期游历路线图</div>
-          <div class="dem-legend">
-            <div class="bar"></div>
-            <div class="labels">
-              <span>平原</span><span>丘陵</span><span>低山</span><span>高山</span><span>雪峰</span>
-            </div>
-          </div>
-          <div class="inset-map">全国区位<br>附图</div>
-          <!-- 名山点位 -->
-          <div class="mountain-dot" style="top: 38%; left: 62%;" data-mountain="tianmu">
-            <span class="dot-label">天台山</span>
-          </div>
-          <div class="mountain-dot" style="top: 48%; left: 55%;" data-mountain="yandang">
-            <span class="dot-label">雁荡山</span>
-          </div>
-          <div class="mountain-dot" style="top: 22%; left: 48%;" data-mountain="huangshan">
-            <span class="dot-label">黄山</span>
-          </div>
-          <div class="mountain-dot" style="top: 62%; left: 38%;" data-mountain="wuyi">
-            <span class="dot-label">武夷山</span>
-          </div>
-          <div class="mountain-dot" style="top: 30%; left: 30%;" data-mountain="lushan">
-            <span class="dot-label">庐山</span>
-          </div>
-        </div>
+      <div class="mod2-map-area">
+        <span class="panel-label">明万历至崇祯 · 名山考察（1607—1636）</span>
+        <div class="mod2-map-wrap" id="map2"></div>
       </div>
-      <div class="mod2-popup">
-        <div class="popup-empty" id="popup-empty">
-          <div class="popup-icon">📍</div>
-          点击左侧朱砂点位<br>查看名山详情
+      <div class="mod2-panel">
+        <div class="panel-empty" id="panel-empty">
+          <div class="empty-icon">📍</div>
+          轻触地图上的朱砂点<br>一览名山胜景
         </div>
-        <div class="popup-detail" id="popup-tianmu">
+        <div class="panel-detail" id="detail-tiantai">
           <h3>天台山</h3>
-          <div class="mountain-img">[ 天台山图片 ]</div>
-          <div class="mountain-info">
-            <p>徐霞客首次出游之地，万历四十一年（1613年）游天台。</p>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          <div class="visit-year">万历四十一年 · 1613年</div>
+          <div class="mountain-scene">
+            <div class="scene-layer l1"></div>
+            <div class="scene-layer l2"></div>
+            <div class="mist"></div>
           </div>
-          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+          <div class="mountain-info">
+            <p>徐霞客首次出游即选天台。他遍历华顶、石梁飞瀑、琼台仙谷，详细记录天台山地貌与佛道文化。</p>
+            <blockquote>"泉声山色，往复创变，翠丛中山鹃映发，令人攀历忘苦。"</blockquote>
+          </div>
         </div>
-        <div class="popup-detail" id="popup-yandang">
+        <div class="panel-detail" id="detail-yandang">
           <h3>雁荡山</h3>
-          <div class="mountain-img">[ 雁荡山图片 ]</div>
-          <div class="mountain-info">
-            <p>徐霞客三游雁荡，寻访大小龙湫，考证山形水脉。</p>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          <div class="visit-year">万历四十一年 · 1613年</div>
+          <div class="mountain-scene">
+            <div class="scene-layer l1"></div>
+            <div class="scene-layer l2"></div>
+            <div class="mist"></div>
           </div>
-          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+          <div class="mountain-info">
+            <p>徐霞客三游雁荡，寻访大龙湫、小龙湫瀑布，考证雁湖所在。他攀悬崖、涉险谷，纠正了前人关于雁湖位置的错误记载。</p>
+            <blockquote>"龙湫之瀑，轰然下捣潭中，岩势开张峭削，水无所着，腾空飘荡，顿令心目眩怖。"</blockquote>
+          </div>
         </div>
-        <div class="popup-detail" id="popup-huangshan">
+        <div class="panel-detail" id="detail-huangshan">
           <h3>黄山</h3>
-          <div class="mountain-img">[ 黄山图片 ]</div>
-          <div class="mountain-info">
-            <p>徐霞客登黄山后赞叹："薄海内外之名山，无如徽之黄山。"</p>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          <div class="visit-year">万历四十四年 · 1616年</div>
+          <div class="mountain-scene">
+            <div class="scene-layer l1"></div>
+            <div class="scene-layer l2"></div>
+            <div class="mist"></div>
           </div>
-          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+          <div class="mountain-info">
+            <p>徐霞客两登黄山，遍历天都、莲花诸峰。他在大雪封山时登山，见证云海奇观，留下千古名句。</p>
+            <blockquote>"薄海内外之名山，无如徽之黄山。登黄山，天下无山，观止矣！"</blockquote>
+          </div>
         </div>
-        <div class="popup-detail" id="popup-wuyi">
+        <div class="panel-detail" id="detail-wuyi">
           <h3>武夷山</h3>
-          <div class="mountain-img">[ 武夷山图片 ]</div>
-          <div class="mountain-info">
-            <p>徐霞客游武夷九曲，详细记载了丹霞地貌特征。</p>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          <div class="visit-year">万历四十四年 · 1616年</div>
+          <div class="mountain-scene">
+            <div class="scene-layer l1"></div>
+            <div class="scene-layer l2"></div>
+            <div class="mist"></div>
           </div>
-          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+          <div class="mountain-info">
+            <p>徐霞客溯九曲溪而上，详细记载丹霞地貌特征——赤壁丹崖、洞穴纵横。他对武夷山的溪流走向做了精确测量。</p>
+            <blockquote>"两岸苍翠纷飞，山回水转，步步生奇。"</blockquote>
+          </div>
         </div>
-        <div class="popup-detail" id="popup-lushan">
+        <div class="panel-detail" id="detail-lushan">
           <h3>庐山</h3>
-          <div class="mountain-img">[ 庐山图片 ]</div>
-          <div class="mountain-info">
-            <p>徐霞客游庐山，考察瀑布与地质构造。</p>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+          <div class="visit-year">万历四十六年 · 1618年</div>
+          <div class="mountain-scene">
+            <div class="scene-layer l1"></div>
+            <div class="scene-layer l2"></div>
+            <div class="mist"></div>
           </div>
-          <div class="audio-hint">🔊 语音讲解（待添加）</div>
+          <div class="mountain-info">
+            <p>徐霞客考察庐山地质构造，寻访三叠泉瀑布，研究冰川遗迹。他对庐山的岩石层理、溪涧侵蚀做了开创性观察。</p>
+            <blockquote>"不登三叠泉，不算庐山客。"</blockquote>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- ==================== 模块三：后期万里遐征 ==================== -->
     <section class="page" id="page3">
-      <div class="mod3-map">
-        <div class="mod3-map-inner">
-          <div class="map-area-label">中国南方全域动态地图 — 蓝色超长轨迹（西南万里遐征）</div>
-          <div class="compass">北 ↑</div>
-          <svg class="mod3-trajectory" viewBox="0 0 1200 600" preserveAspectRatio="none">
-            <path class="trajectory-line"
-              d="M 180 200 C 250 180, 300 250, 380 220 C 450 190, 500 300, 580 280 C 650 260, 700 350, 780 380 C 850 400, 880 350, 920 320 C 960 290, 1000 340, 1080 300" />
-            <path class="trajectory-line secondary"
-              d="M 580 280 C 620 240, 680 200, 740 160 C 780 130, 820 120, 860 100" />
-            <path class="trajectory-line tertiary"
-              d="M 780 380 C 820 420, 850 460, 900 480 C 940 500, 980 470, 1040 440" />
-          </svg>
-          <div class="route-node" style="top: 28%; left: 18%;"><span class="node-label right">杭州</span></div>
-          <div class="route-node" style="top: 24%; left: 28%;"><span class="node-label bottom">南昌</span></div>
-          <div class="route-node" style="top: 35%; left: 38%;"><span class="node-label bottom">衡阳</span></div>
-          <div class="route-node" style="top: 42%; left: 52%;"><span class="node-label bottom">桂林</span></div>
-          <div class="route-node" style="top: 52%; left: 62%;"><span class="node-label bottom">贵阳</span></div>
-          <div class="route-node" style="top: 45%; left: 72%;"><span class="node-label top">昆明</span></div>
-          <div class="route-node" style="top: 58%; left: 80%;"><span class="node-label bottom">大理</span></div>
-          <div class="route-node" style="top: 38%; left: 88%;"><span class="node-label top">腾冲</span></div>
-          <div class="route-node" style="top: 18%; left: 62%;"><span class="node-label top">长沙</span></div>
-          <div class="route-node" style="top: 72%; left: 82%;"><span class="node-label right">丽江</span></div>
+      <div class="mod3-top">
+        <span class="panel-label">崇祯九年至十三年 · 西南万里遐征（1636—1640）</span>
+        <div class="mod3-map-wrap" id="map3"></div>
+        <div class="journey-progress">
+          <div class="progress-fill" id="journeyProgress"></div>
         </div>
+      </div>
+      <div class="mod3-bottom" id="timelineBar">
+        <div class="timeline-label">时间线</div>
+        <div class="timeline-stage active" data-index="0">
+          <div class="stage-year">1636年</div>
+          <div class="stage-name">江浙出发</div>
+        </div>
+        <div class="timeline-stage" data-index="1">
+          <div class="stage-year">1637年</div>
+          <div class="stage-name">湘江遇盗</div>
+        </div>
+        <div class="timeline-stage" data-index="2">
+          <div class="stage-year">1638年</div>
+          <div class="stage-name">广西探洞</div>
+        </div>
+        <div class="timeline-stage" data-index="3">
+          <div class="stage-year">1639年</div>
+          <div class="stage-name">滇西极边</div>
+        </div>
+        <div class="timeline-stage" data-index="4">
+          <div class="stage-year">1640年</div>
+          <div class="stage-name">丽江归途</div>
+        </div>
+        <button class="timeline-nav" id="prevStage" title="上一站">◀</button>
+        <button class="timeline-nav" id="nextStage" title="下一站">▶</button>
       </div>
     </section>
 
     <!-- ==================== 模块四：文学与科学价值 ==================== -->
     <section class="page" id="page4">
-      <div class="mod4-bg"></div>
-      <div class="mod4-trails">
-        <div class="trail-line trail-red"></div>
-        <div class="trail-line trail-blue"></div>
-        <div class="trail-line trail-red-2"></div>
-        <div class="trail-line trail-blue-2"></div>
-      </div>
-      <div class="mod4-legend">
-        <span><span class="leg-red"></span> 前期路线</span>
-        <span><span class="leg-blue"></span> 后期路线</span>
+      <div class="mod4-header">
+        <h2>千古奇书 · 百世流芳</h2>
+        <p class="mod4-sub">—— 一部游记，开创两大领域 ——</p>
       </div>
       <div class="mod4-split">
         <div class="mod4-left">
           <h3>地理科学价值</h3>
-          <div class="section-tag">—— 科学先驱，实地考察 ——</div>
           <div class="value-item">
-            <h4>喀斯特地貌研究</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">🏔</span> 喀斯特地貌研究</h4>
+            <p>世界上最早对喀斯特地貌进行大规模系统考察的科学家。他考察了湖南、广西、贵州、云南四省三百多个溶洞，对其形态、成因做了详实记录，比西方同类研究早二百余年。他准确描述了石芽、溶沟、峰林等地貌特征。</p>
           </div>
           <div class="value-item">
-            <h4>江河源流考证</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">🌊</span> 江河源流考证</h4>
+            <p>纠正了《尚书·禹贡》"岷山导江"的千年谬误，提出金沙江为长江正源的科学论断。他还考察了珠江上游——南盘江、北盘江的源流，以及澜沧江、怒江、元江的水系分布。</p>
           </div>
           <div class="value-item">
-            <h4>火山与地热记载</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">🌋</span> 火山与地热记载</h4>
+            <p>实地考察腾冲火山群和地热温泉，记录了"打鹰山"火山形貌和硫磺塘等地热现象，是中国古代对火山地貌最详尽的科学记录。他还注意到地热矿泉的医疗价值。</p>
           </div>
         </div>
         <div class="mod4-right">
           <h3>文学艺术价值</h3>
-          <div class="section-tag">—— 文采斐然，游记典范 ——</div>
           <div class="value-item">
-            <h4>日记体游记文学</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">📜</span> 日记体游记文学</h4>
+            <p>《徐霞客游记》以日记体写成，六十余万字，是中国游记文学的巅峰。不同于前人短篇写景，他将科学观察融入文学描写，创造了独特的"科考游记"体裁，钱谦益称其为"世间真文字、大文字、奇文字"。</p>
           </div>
           <div class="value-item">
-            <h4>山水描写艺术</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">🖌</span> 山水描写艺术</h4>
+            <p>其山水描写注重动态体验——随行踪移动而变换视角，呈现步移景异的立体画卷。"峰峰奇诡，崖崖削立，往往皆洞天之胜"等对仗骈句，兼具文学之美与地理之真。其文字功力使黄山之名广播天下。</p>
           </div>
           <div class="value-item">
-            <h4>人文风俗记录</h4>
-            <span class="placeholder-line"></span><span class="placeholder-line"></span>
+            <h4><span class="v-icon">🏘</span> 人文风俗记录</h4>
+            <p>游历途中记录了大量明代边疆民族风俗、物产经济、宗教信仰等社会文化生活。对西南少数民族——纳西族、傣族、苗族等的生产生活方式、建筑形制均有珍贵记载，具有极高的民俗学与人类学价值。</p>
           </div>
         </div>
       </div>
@@ -754,28 +632,308 @@
 
   </main>
 
-  <!-- ===== 脚本 ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // ====== 导航切换（带动画） ======
+    // ===== 全局变量 =====
+    let map1, map2, map3;
+    let earlyMarkers = [];
+    let lateRouteLine;
+    let activeStage = 0;
+    const totalStages = 5;
+
+    // ===== 徐霞客游历坐标数据 =====
+    // 全程路线（用于模块一）
+    const fullRoute = [
+      [30.25, 120.17], // 杭州/江阴出发
+      [29.18, 121.04], // 天台山
+      [28.37, 121.06], // 雁荡山
+      [30.13, 118.17], // 黄山
+      [27.72, 117.68], // 武夷山
+      [29.57, 115.98], // 庐山
+      [28.23, 112.94], // 长沙
+      [26.89, 112.57], // 衡阳
+      [25.27, 110.28], // 桂林
+      [26.65, 106.63], // 贵阳
+      [25.04, 102.71], // 昆明
+      [25.61, 100.27], // 大理
+      [25.02, 98.49],  // 腾冲
+      [26.86, 100.23], // 丽江
+    ];
+
+    // 前期名山点位
+    const earlyMountains = [
+      { id: 'tiantai', name: '天台山', lat: 29.18, lng: 121.04, year: '1613年', desc: '首次出游', color: '#c0392b' },
+      { id: 'yandang', name: '雁荡山', lat: 28.37, lng: 121.06, year: '1613年', desc: '三游雁荡', color: '#c0392b' },
+      { id: 'huangshan', name: '黄山', lat: 30.13, lng: 118.17, year: '1616年', desc: '两登黄山', color: '#c0392b' },
+      { id: 'wuyi', name: '武夷山', lat: 27.72, lng: 117.68, year: '1616年', desc: '丹霞地貌考察', color: '#c0392b' },
+      { id: 'lushan', name: '庐山', lat: 29.57, lng: 115.98, year: '1618年', desc: '地质构造研究', color: '#c0392b' },
+    ];
+
+    // 后期遐征路线分段
+    const lateStages = [
+      {
+        name: '江浙出发', year: '1636年',
+        route: [[30.25,120.17], [29.18,121.04], [29.87,121.55], [30.26,120.16]],
+        description: '崇祯九年九月十九日，五十一岁的徐霞客从江阴出发，开始他一生中最重要的"万里遐征"。他沿大运河南下，经苏州、杭州，进入浙江腹地。'
+      },
+      {
+        name: '湘江遇盗', year: '1637年',
+        route: [[30.26,120.16], [28.23,112.94], [26.89,112.57]],
+        description: '行至湖南，在湘江舟中遭遇盗匪，财物尽失，连衣物也被劫掠。但徐霞客拒绝回家，以"何处不可埋吾骨"的意志继续前行，深入湖南考察溶洞地貌。'
+      },
+      {
+        name: '广西探洞', year: '1638年',
+        route: [[26.89,112.57], [25.27,110.28], [23.90,106.60], [26.65,106.63]],
+        description: '进入广西，对桂林至阳朔的漓江两岸喀斯特峰林进行了系统考察。他亲入百余洞穴，测量其深度、走向，描述钟乳石形态，开启了中国岩溶学研究的先河。'
+      },
+      {
+        name: '滇西极边', year: '1639年',
+        route: [[26.65,106.63], [25.04,102.71], [25.61,100.27], [25.02,98.49]],
+        description: '穿越云南，抵达中国极西边陲腾冲。在此考察火山群、地热温泉，成为中国古代实地观察并记录火山地貌的第一人。他在腾冲"打鹰山"详细描述了火山锥的形状和火山岩特征。'
+      },
+      {
+        name: '丽江归途', year: '1640年',
+        route: [[25.02,98.49], [26.86,100.23], [25.04,102.71]],
+        description: '受丽江土司木增之邀逗留丽江，为纳西族子弟传授中原文化。后因足疾加重，木增派人将他抬送回江阴。崇祯十四年（1641年），徐霞客在家中病逝，享年五十四岁。'
+      }
+    ];
+
+    // ===== Leaflet 古风瓦片图层工厂 =====
+    function createAntiqueTileLayer() {
+      return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '',
+        maxZoom: 18,
+      });
+    }
+
+    // 自定义朱砂标记图标
+    function createRedIcon() {
+      return L.divIcon({
+        className: 'custom-red-marker',
+        html: '<div style="width:16px;height:16px;background:#c0392b;border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px rgba(192,57,43,0.6),0 0 20px rgba(192,57,43,0.2);animation: markerPulse 2.5s ease-in-out infinite;"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [0, -10],
+      });
+    }
+
+    function createBlueIcon() {
+      return L.divIcon({
+        className: 'custom-blue-marker',
+        html: '<div style="width:14px;height:14px;background:#2c5f8a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(44,95,138,0.6),0 0 16px rgba(44,95,138,0.2);animation: markerPulse 2.5s ease-in-out infinite;"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -8],
+      });
+    }
+
+    // 标记脉冲动画注入
+    const pulseStyle = document.createElement('style');
+    pulseStyle.textContent = `
+      @keyframes markerPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.8; }
+      }
+    `;
+    document.head.appendChild(pulseStyle);
+
+    // ===== 模块一：全国总览地图 =====
+    function initMap1() {
+      map1 = L.map('map1', {
+        center: [30.5, 110],
+        zoom: 5,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      createAntiqueTileLayer().addTo(map1);
+
+      // 绘制完整路线（红色前期 + 蓝色后期）
+      const earlyRoute = fullRoute.slice(0, 6);
+      const lateRoute = fullRoute.slice(5);
+
+      L.polyline(earlyRoute, {
+        color: '#c0392b', weight: 3, opacity: 0.7,
+        dashArray: '8 6', lineCap: 'round',
+      }).addTo(map1);
+
+      L.polyline(lateRoute, {
+        color: '#2c5f8a', weight: 4, opacity: 0.7,
+        dashArray: '10 6', lineCap: 'round',
+      }).addTo(map1);
+
+      // 前期标记（朱砂点）
+      earlyMountains.forEach(m => {
+        const marker = L.marker([m.lat, m.lng], { icon: createRedIcon() }).addTo(map1);
+        marker.bindPopup(`<div class="custom-popup"><h4>${m.name}</h4><p>${m.desc} · ${m.year}</p></div>`);
+      });
+
+      // 后期标记（蓝色点）
+      fullRoute.slice(5).forEach((coord, i) => {
+        if (i % 3 === 0 || i === fullRoute.slice(5).length - 1) {
+          const marker = L.marker(coord, { icon: createBlueIcon() }).addTo(map1);
+        }
+      });
+
+      // 缩放至适合路线
+      map1.fitBounds([
+        [22, 98],
+        [32, 122],
+      ], { padding: [30, 30] });
+    }
+
+    // ===== 模块二：前期名山地图 =====
+    function initMap2() {
+      map2 = L.map('map2', {
+        center: [29, 117],
+        zoom: 7,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      createAntiqueTileLayer().addTo(map2);
+
+      // 名山标记 + 点击事件
+      earlyMountains.forEach(m => {
+        const marker = L.marker([m.lat, m.lng], { icon: createRedIcon() }).addTo(map2);
+        marker.bindPopup(`<div class="custom-popup"><h4>${m.name}</h4><p>${m.desc} · ${m.year}</p></div>`);
+        marker.on('click', () => showMountainDetail(m.id));
+        earlyMarkers.push(marker);
+      });
+
+      // 连接线
+      const earlyCoords = earlyMountains.map(m => [m.lat, m.lng]);
+      L.polyline(earlyCoords, {
+        color: '#c0392b', weight: 2.5, opacity: 0.5,
+        dashArray: '6 4', lineCap: 'round',
+      }).addTo(map2);
+
+      map2.fitBounds([
+        [27, 114],
+        [31, 122],
+      ], { padding: [40, 40] });
+    }
+
+    function showMountainDetail(id) {
+      document.getElementById('panel-empty').style.display = 'none';
+      document.querySelectorAll('.mod2-panel .panel-detail').forEach(d => d.classList.remove('show'));
+      const target = document.getElementById('detail-' + id);
+      if (target) {
+        target.classList.add('show');
+      }
+    }
+
+    // ===== 模块三：西南万里遐征 =====
+    function initMap3() {
+      map3 = L.map('map3', {
+        center: [26.5, 106],
+        zoom: 6,
+        zoomControl: true,
+        attributionControl: false,
+      });
+
+      createAntiqueTileLayer().addTo(map3);
+
+      map3.fitBounds([
+        [22, 98],
+        [31, 122],
+      ], { padding: [40, 40] });
+
+      drawStageRoute(0);
+    }
+
+    function drawStageRoute(stageIndex) {
+      // 清除旧路线
+      if (lateRouteLine) {
+        map3.removeLayer(lateRouteLine);
+      }
+
+      // 绘制到达当前阶段的累计路线
+      let cumulativeRoute = [];
+      for (let i = 0; i <= stageIndex; i++) {
+        cumulativeRoute = cumulativeRoute.concat(lateStages[i].route);
+      }
+
+      // 简化路线防止重复点
+      const simplified = [];
+      for (let i = 0; i < cumulativeRoute.length; i++) {
+        if (i === 0 || i === cumulativeRoute.length - 1 ||
+            (cumulativeRoute[i][0] !== cumulativeRoute[i-1]?.[0] || cumulativeRoute[i][1] !== cumulativeRoute[i-1]?.[1])) {
+          simplified.push(cumulativeRoute[i]);
+        }
+      }
+
+      lateRouteLine = L.polyline(simplified, {
+        color: '#2c5f8a', weight: 3.5, opacity: 0.7,
+        dashArray: '8 5', lineCap: 'round',
+      }).addTo(map3);
+
+      // 阶段终点标记
+      const endpoints = lateStages.slice(0, stageIndex + 1).map(s => s.route[s.route.length - 1]);
+      endpoints.forEach((coord, i) => {
+        const m = L.circleMarker(coord, {
+          radius: i === stageIndex ? 8 : 5,
+          fillColor: i === stageIndex ? '#c0392b' : '#2c5f8a',
+          color: '#fff',
+          weight: 2,
+          fillOpacity: 0.9,
+        }).addTo(map3);
+        m.bindPopup(`<div class="custom-popup"><h4>${lateStages[i].name}</h4><p>${lateStages[i].year}</p></div>`);
+      });
+
+      // 更新进度条
+      const progressPct = ((stageIndex + 1) / totalStages) * 100;
+      document.getElementById('journeyProgress').style.width = progressPct + '%';
+
+      // 缩放至当前阶段
+      if (lateStages[stageIndex].route.length > 1) {
+        const bounds = L.latLngBounds(lateStages[stageIndex].route);
+        map3.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
+      }
+
+      // 更新时间线
+      document.querySelectorAll('.timeline-stage').forEach((el, i) => {
+        el.classList.toggle('active', i === stageIndex);
+      });
+
+      activeStage = stageIndex;
+    }
+
+    // ===== 导航切换逻辑 =====
     const navItems = document.querySelectorAll('.nav-item');
     const pages = document.querySelectorAll('.page');
+    const mapInitialized = { page1: false, page2: false, page3: false };
 
     navItems.forEach(item => {
       item.addEventListener('click', function() {
         const targetPageId = this.getAttribute('data-page');
         const targetPage = document.getElementById(targetPageId);
 
-        // 更新导航状态
         navItems.forEach(n => n.classList.remove('active'));
         this.classList.add('active');
 
-        // 页面切换动画
         pages.forEach(p => {
           if (p.id === targetPageId) {
             p.classList.add('active');
             p.classList.remove('entering');
-            void p.offsetWidth; // 强制回流
+            void p.offsetWidth;
             p.classList.add('entering');
+
+            // 首次懒加载地图
+            if (!mapInitialized[targetPageId]) {
+              setTimeout(() => {
+                if (targetPageId === 'page1') { initMap1(); mapInitialized.page1 = true; }
+                if (targetPageId === 'page2') { initMap2(); mapInitialized.page2 = true; }
+                if (targetPageId === 'page3') { initMap3(); mapInitialized.page3 = true; }
+              }, 200);
+            } else {
+              // 已初始化的地图需要刷新大小
+              setTimeout(() => {
+                if (targetPageId === 'page1' && map1) map1.invalidateSize();
+                if (targetPageId === 'page2' && map2) map2.invalidateSize();
+                if (targetPageId === 'page3' && map3) map3.invalidateSize();
+              }, 100);
+            }
           } else {
             p.classList.remove('active', 'entering');
           }
@@ -783,37 +941,55 @@
       });
     });
 
-    // ====== 模块二：名山点位点击 ======
-    const dots = document.querySelectorAll('.mountain-dot');
-    const popupEmpty = document.getElementById('popup-empty');
-    const allDetails = document.querySelectorAll('.popup-detail');
-
-    dots.forEach(dot => {
-      dot.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const mountainId = this.getAttribute('data-mountain');
-        popupEmpty.style.display = 'none';
-        allDetails.forEach(d => d.classList.remove('show'));
-        const targetDetail = document.getElementById('popup-' + mountainId);
-        if (targetDetail) {
-          targetDetail.classList.add('show');
+    // ===== 模块二弹窗面板关闭 =====
+    const mod2Panel = document.querySelector('.mod2-panel');
+    if (mod2Panel) {
+      mod2Panel.addEventListener('click', function(e) {
+        if (e.target === this) {
+          document.querySelectorAll('.mod2-panel .panel-detail').forEach(d => d.classList.remove('show'));
+          document.getElementById('panel-empty').style.display = 'flex';
         }
       });
-    });
+    }
 
-    document.querySelector('.mod2-popup').addEventListener('click', function(e) {
-      if (e.target === this) {
-        allDetails.forEach(d => d.classList.remove('show'));
-        popupEmpty.style.display = 'flex';
+    // ===== 模块三时间线导航 =====
+    document.getElementById('prevStage').addEventListener('click', () => {
+      if (activeStage > 0) {
+        drawStageRoute(activeStage - 1);
+      }
+    });
+    document.getElementById('nextStage').addEventListener('click', () => {
+      if (activeStage < totalStages - 1) {
+        drawStageRoute(activeStage + 1);
       }
     });
 
-    // ====== 首次加载入场 ======
-    const firstPage = document.querySelector('.page.active');
-    if (firstPage) {
-      firstPage.classList.remove('entering');
-      void firstPage.offsetWidth;
-      firstPage.classList.add('entering');
+    document.querySelectorAll('.timeline-stage').forEach((el, i) => {
+      el.addEventListener('click', () => drawStageRoute(i));
+    });
+
+    // 键盘导航
+    document.addEventListener('keydown', (e) => {
+      const page3Active = document.getElementById('page3').classList.contains('active');
+      if (page3Active) {
+        if (e.key === 'ArrowLeft' && activeStage > 0) drawStageRoute(activeStage - 1);
+        if (e.key === 'ArrowRight' && activeStage < totalStages - 1) drawStageRoute(activeStage + 1);
+      }
+    });
+
+    // ===== 首次加载 =====
+    setTimeout(() => {
+      initMap1();
+      mapInitialized.page1 = true;
+    }, 300);
+
+    // ===== 水墨散开动画（仅在首次） =====
+    const inkReveal = document.getElementById('inkReveal');
+    if (inkReveal && !sessionStorage.getItem('inkPlayed')) {
+      inkReveal.style.animationPlayState = 'running';
+      sessionStorage.setItem('inkPlayed', '1');
+    } else if (inkReveal) {
+      inkReveal.style.display = 'none';
     }
   </script>
 
