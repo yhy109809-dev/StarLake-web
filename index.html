@@ -1727,6 +1727,34 @@
       });
     }
 
+    // 视野自动跟随:框选当前路线及其点位标签,恰好显示全部信息
+    function focusRouteView(routeId) {
+      const el = routeSvgOverlays[routeId].getElement();
+      if (!el) return;
+      let bb = null;
+      el.querySelectorAll('g').forEach(g => {
+        const id = g.id || '';
+        if (id.indexOf('rt-') === 0 || id.indexOf('pts-') === 0) {
+          const b = g.getBBox();
+          if (b.width > 0 || b.height > 0) {
+            if (bb) {
+              const x2 = Math.max(bb.x + bb.w, b.x + b.width), y2 = Math.max(bb.y + bb.h, b.y + b.height);
+              bb.x = Math.min(bb.x, b.x); bb.y = Math.min(bb.y, b.y);
+              bb.w = x2 - bb.x; bb.h = y2 - bb.y;
+            } else {
+              bb = { x: b.x, y: b.y, w: b.width, h: b.height };
+            }
+          }
+        }
+      });
+      if (!bb || bb.w <= 0) return;
+      const sx = 1055 / 595.28, sy = 1491 / 841.89;
+      const pad = 30; // viewBox 单位外扩,给四周标签留呼吸空间
+      const west = (bb.x - pad) * sx, east = (bb.x + bb.w + pad) * sx;
+      const north = -(bb.y - pad) * sy, south = -(bb.y + bb.h + pad) * sy;
+      earlyMap.fitBounds([[south, west], [north, east]], { padding: [50, 50], maxZoom: 2 });
+    }
+
     async function showRoute(i) {
       const route = ROUTES[i];
       Object.values(routeSvgOverlays).forEach(o => o.remove());
@@ -1739,6 +1767,7 @@
         if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
         routeSvgOverlays[route.id].addTo(earlyMap);
         bindRouteInteractions(route);
+        focusRouteView(route.id); // 视野自动跟随到当前路线
       } catch (err) {
         console.error('路线加载失败:', err);
         showToast('路线加载失败，请刷新重试');
