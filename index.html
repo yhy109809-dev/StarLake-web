@@ -2351,6 +2351,18 @@
       narration: "四年万里，徐霞客历经两度遇盗、三次绝粮，足迹远至云南腾冲。一六四零年，他因足疾被送归江阴，次年病逝家中，年五十五岁。他留下的六十余万字游记，成为中国古代地理学的巅峰。徐霞客的山河之旅，至此暂告一段落。"
     };
     const XINAN_SPEED = 1 / 95; // 全程约95秒
+    // VoxCPM 预生成旁白 MP3(存在则优先播放,缺失自动降级浏览器语音)
+    const NARRATION_AUDIO = {
+      '江阴 · 启程': 'assets/audio/1636-jiangyin.mp3',
+      '闽赣 · 转折': 'assets/audio/1636-minqian.mp3',
+      '湖南 · 衡州': 'assets/audio/1637-hengzhou.mp3',
+      '广西 · 桂林': 'assets/audio/1637-guilin.mp3',
+      '贵州 · 山行': 'assets/audio/1638-guizhou.mp3',
+      '云南 · 东境': 'assets/audio/1638-yunnan.mp3',
+      '滇西 · 大理': 'assets/audio/1639-dali.mp3',
+      '腾冲 · 西极': 'assets/audio/1639-tengchong.mp3',
+      '万里遐征 · 山河终章': 'assets/audio/1640-finale.mp3',
+    };
     const JOURNEY = {
       progress: 0, started: false, playing: false, finished: false,
       nodes: [], pathEl: null, total: 0, charEl: null, flipEl: null,
@@ -2419,9 +2431,9 @@
       document.getElementById('journeyStartBtn').addEventListener('click', startJourney);
       document.getElementById('journeyPauseBtn').addEventListener('click', toggleJourneyPause);
       document.getElementById('scContinue').addEventListener('click', continueJourney);
-      document.getElementById('scPause').addEventListener('click', () => { try { speechSynthesis.pause(); } catch (e) {} });
-      document.getElementById('scResume').addEventListener('click', () => { try { speechSynthesis.resume(); } catch (e) {} });
-      document.getElementById('scReplay').addEventListener('click', () => { if (JOURNEY.atNode) speakNarration(JOURNEY.atNode.narration); });
+      document.getElementById('scPause').addEventListener('click', pauseNarration);
+      document.getElementById('scResume').addEventListener('click', resumeNarration);
+      document.getElementById('scReplay').addEventListener('click', replayNarration);
     }
 
     function placeCharacter(progress) {
@@ -2510,7 +2522,7 @@
         }
       }
       showStoryCard(nd);
-      speakNarration(nd.narration);
+      playNarration(nd);
     }
     function continueJourney() {
       if (JOURNEY.finished) return;
@@ -2529,7 +2541,7 @@
       const btn = document.getElementById('journeyPauseBtn');
       btn.classList.remove('on');
       showStoryCard(Object.assign({}, FINAL_STORY, { isFinal: true }));
-      speakNarration(FINAL_STORY.narration);
+      playNarration(Object.assign({}, FINAL_STORY, { title: '万里遐征 · 山河终章' }));
     }
     function restartJourney() {
       JOURNEY.progress = 0; JOURNEY.finished = false; JOURNEY.started = false;
@@ -2580,6 +2592,38 @@
       document.getElementById('storyCard').classList.remove('show');
     }
 
+    // ===== 旁白播放器(MP3 优先 / 浏览器语音兜底) =====
+    let narrAudio = null, narrMode = 'none', narrCur = null;
+    function stopNarration() {
+      try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+      if (narrAudio) { narrAudio.pause(); }
+      narrMode = 'none';
+    }
+    function playNarration(nd) {
+      stopNarration();
+      narrCur = nd;
+      const src = NARRATION_AUDIO[nd.title];
+      if (src) {
+        if (!narrAudio) narrAudio = new Audio();
+        narrAudio.src = src;
+        narrAudio.play().then(() => { narrMode = 'audio'; })
+          .catch(() => { narrMode = 'tts'; speakNarration(nd.narration); });
+        narrMode = 'audio';
+      } else {
+        narrMode = 'tts';
+        speakNarration(nd.narration);
+      }
+    }
+    function pauseNarration() {
+      if (narrMode === 'audio' && narrAudio) narrAudio.pause();
+      else if (narrMode === 'tts') { try { speechSynthesis.pause(); } catch (e) {} }
+    }
+    function resumeNarration() {
+      if (narrMode === 'audio' && narrAudio) narrAudio.play().catch(() => {});
+      else if (narrMode === 'tts') { try { speechSynthesis.resume(); } catch (e) {} }
+    }
+    function replayNarration() { if (narrCur) playNarration(narrCur); }
+
     // ===== Web Speech API(中文男声优先,任何环境不报错) =====
     let lateVoicesBound = false;
     function speakNarration(text) {
@@ -2601,7 +2645,7 @@
       } catch (e) { /* 语音不可用时静默降级 */ }
     }
     function pauseJourneyAll() {
-      try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+      stopNarration();
       if (JOURNEY.raf) { cancelAnimationFrame(JOURNEY.raf); JOURNEY.raf = null; }
       JOURNEY.playing = false;
     }
