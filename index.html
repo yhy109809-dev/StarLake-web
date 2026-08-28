@@ -38,15 +38,51 @@
       position: relative;
     }
 
-    /* ===== 宣纸纹理背景 ===== */
+    /* ===== 第一层：宣纸质感（纸纤维 · 斑驳 · 四角陈旧晕染） ===== */
     body::before {
       content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background:
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,115,85,0.015) 2px, rgba(139,115,85,0.015) 4px),
-        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,115,85,0.008) 3px, rgba(139,115,85,0.008) 6px),
-        radial-gradient(ellipse at 15% 20%, rgba(139,115,85,0.04) 0%, transparent 40%),
-        radial-gradient(ellipse at 85% 70%, rgba(92,61,46,0.03) 0%, transparent 35%),
-        radial-gradient(ellipse at 50% 90%, rgba(44,24,16,0.05) 0%, transparent 30%);
+        /* 纸纤维细纹 */
+        repeating-linear-gradient(0deg, transparent 0 2px, rgba(139,115,85,0.016) 2px 4px),
+        repeating-linear-gradient(90deg, transparent 0 3px, rgba(139,115,85,0.009) 3px 6px),
+        repeating-linear-gradient(83deg, transparent 0 46px, rgba(139,115,85,0.012) 46px 47px),
+        repeating-linear-gradient(8deg, transparent 0 64px, rgba(92,61,46,0.01) 64px 65px),
+        /* 宣纸自然斑驳 */
+        radial-gradient(ellipse 420px 300px at 12% 18%, rgba(139,115,85,0.055) 0%, transparent 60%),
+        radial-gradient(ellipse 520px 380px at 88% 30%, rgba(196,169,125,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 460px 320px at 22% 72%, rgba(196,169,125,0.045) 0%, transparent 55%),
+        radial-gradient(ellipse 560px 400px at 78% 82%, rgba(92,61,46,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 380px 260px at 45% 50%, rgba(255,252,244,0.32) 0%, transparent 65%),
+        /* 四角淡墨晕染（古纸陈旧感） */
+        radial-gradient(ellipse 34vw 30vh at 0% 0%, rgba(92,61,46,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 30vw 26vh at 100% 0%, rgba(92,61,46,0.045) 0%, transparent 70%),
+        radial-gradient(ellipse 36vw 30vh at 0% 100%, rgba(44,24,16,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 32vw 26vh at 100% 100%, rgba(44,24,16,0.06) 0%, transparent 70%);
+    }
+
+    /* ===== 第二层：古地图纹理（经纬网 · 等高线 · 罗盘 · 底部云雾） ===== */
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        /* 经纬网 */
+        repeating-linear-gradient(0deg, transparent 0 95px, rgba(92,61,46,0.04) 95px 96px),
+        repeating-linear-gradient(90deg, transparent 0 95px, rgba(92,61,46,0.04) 95px 96px),
+        /* 地形等高线圈 */
+        radial-gradient(circle at 18% 22%,
+          transparent 110px, rgba(139,115,85,0.07) 111px 112px, transparent 115px,
+          transparent 150px, rgba(139,115,85,0.05) 151px 152px, transparent 156px),
+        radial-gradient(circle at 84% 62%,
+          transparent 130px, rgba(139,115,85,0.06) 131px 132px, transparent 136px,
+          transparent 180px, rgba(139,115,85,0.045) 181px 182px, transparent 187px),
+        radial-gradient(circle at 66% 14%,
+          transparent 80px, rgba(139,115,85,0.05) 81px 82px, transparent 85px),
+        /* 罗盘圆环（古地图方位暗示，极淡朱砂） */
+        radial-gradient(circle at 24% 76%,
+          transparent 40px, rgba(192,57,43,0.05) 41px 42px, transparent 45px,
+          transparent 78px, rgba(92,61,46,0.05) 79px 80px, transparent 84px),
+        /* 底部云雾收尾 + 顶部留白过渡 */
+        linear-gradient(0deg, rgba(139,115,85,0.09) 0%, rgba(139,115,85,0.035) 5%, transparent 14%),
+        linear-gradient(180deg, rgba(252,247,238,0.5) 0%, transparent 10%);
     }
 
     /* ==========================================
@@ -54,11 +90,15 @@
        ========================================== */
     .sidebar {
       width: var(--sidebar-w); min-width: 200px; height: 100vh;
-      background: linear-gradient(180deg,
-        rgba(254,252,248,0.95) 0%,
-        rgba(245,236,220,0.92) 40%,
-        rgba(235,221,196,0.9) 100%
-      );
+      background:
+        /* 霞客立像（提取自长卷，multiply 融入宣纸底色，位于所有内容之下） */
+        url("assets/figure-left.png") no-repeat left bottom / 100% auto,
+        linear-gradient(180deg,
+          rgba(254,252,248,0.95) 0%,
+          rgba(245,236,220,0.92) 40%,
+          rgba(235,221,196,0.9) 100%
+        );
+      background-blend-mode: multiply, normal;
       border-right: 1px solid var(--accent-gold);
       display: flex; flex-direction: column; align-items: center;
       padding: 30px 16px 20px;
@@ -71,6 +111,17 @@
       content: ""; position: absolute; right: 6px; top: 8%; height: 84%; width: 1px;
       background: repeating-linear-gradient(0deg, var(--accent-gold) 0px, var(--accent-gold) 2px, transparent 2px, transparent 14px);
       opacity: 0.4;
+    }
+    /* 左边缘：底部远山水墨剪影（雾中淡山） */
+    .sidebar::before {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 120px; z-index: -1; pointer-events: none;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(92,61,46,0.05) 42%,
+        rgba(44,24,16,0.09) 76%,
+        rgba(44,24,16,0.13) 100%);
+      clip-path: polygon(0% 100%, 0% 62%, 9% 40%, 18% 58%, 27% 30%, 38% 52%, 47% 24%, 57% 48%, 66% 32%, 76% 55%, 86% 38%, 94% 58%, 100% 44%, 100% 100%);
     }
 
     /* Logo区域 */
@@ -180,7 +231,30 @@
       background:
         radial-gradient(ellipse at 50% 60%, rgba(44,24,16,0.04) 0%, transparent 50%),
         radial-gradient(ellipse at 30% 30%, rgba(92,61,46,0.03) 0%, transparent 40%),
+        /* 四角云雾留白 */
+        radial-gradient(ellipse 320px 220px at 0% 0%, rgba(252,248,240,0.85) 0%, transparent 70%),
+        radial-gradient(ellipse 280px 200px at 100% 0%, rgba(252,248,240,0.7) 0%, transparent 70%),
+        radial-gradient(ellipse 300px 220px at 100% 100%, rgba(252,248,240,0.6) 0%, transparent 70%),
+        /* 经纬网 */
+        repeating-linear-gradient(0deg, transparent 0 95px, rgba(92,61,46,0.045) 95px 96px),
+        repeating-linear-gradient(90deg, transparent 0 95px, rgba(92,61,46,0.045) 95px 96px),
+        /* 角部等高线 */
+        radial-gradient(circle at 8% 92%, transparent 90px, rgba(139,115,85,0.06) 91px 92px, transparent 96px),
+        radial-gradient(circle at 94% 88%, transparent 70px, rgba(139,115,85,0.05) 71px 72px, transparent 76px),
         linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
+    }
+    /* 地图外围：缓慢呼吸的云雾（极轻微，不遮内容） */
+    .map-area::after {
+      content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background:
+        radial-gradient(ellipse 42% 26% at 10% 4%, rgba(252,248,240,0.8) 0%, transparent 70%),
+        radial-gradient(ellipse 36% 22% at 92% 6%, rgba(252,248,240,0.65) 0%, transparent 70%),
+        linear-gradient(0deg, rgba(247,241,227,0.55) 0%, transparent 9%);
+      animation: mistBreath 24s ease-in-out infinite alternate;
+    }
+    @keyframes mistBreath {
+      from { opacity: 0.5; }
+      to   { opacity: 1; }
     }
 
     /* 卷轴边框 */
@@ -280,16 +354,42 @@
        ========================================== */
     .info-panel {
       width: var(--card-w); min-width: 180px; height: 100vh;
-      background: linear-gradient(180deg,
-        rgba(254,252,248,0.95) 0%,
-        rgba(245,236,220,0.92) 100%
-      );
+      background:
+        /* 远山淡影（提取自长卷右缘，位于所有内容之下） */
+        url("assets/mountains-right.png") no-repeat right bottom / 100% auto,
+        linear-gradient(180deg,
+          rgba(254,252,248,0.95) 0%,
+          rgba(245,236,220,0.92) 100%
+        );
+      background-blend-mode: multiply, normal;
       border-left: 1px solid var(--accent-gold);
       display: flex; flex-direction: column;
       padding: 30px 18px 20px;
       position: relative; z-index: 10;
       overflow-y: auto;
       box-shadow: -3px 0 30px rgba(44,24,16,0.08), inset 1px 0 0 rgba(196, 169, 125, 0.35);
+    }
+    /* 右边缘：底部远山水墨剪影（雾中淡山） */
+    .info-panel::before {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 130px; z-index: -1; pointer-events: none;
+      background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(92,61,46,0.05) 40%,
+        rgba(44,24,16,0.1) 100%);
+      clip-path: polygon(0% 100%, 0% 55%, 8% 34%, 17% 55%, 28% 26%, 38% 48%, 49% 20%, 60% 46%, 70% 30%, 80% 52%, 90% 36%, 100% 50%, 100% 100%);
+    }
+    /* 右边缘：古地图暗纹（经纬网 · 罗盘环 · 上下云雾） */
+    .info-panel::after {
+      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 95px, rgba(92,61,46,0.035) 95px 96px),
+        repeating-linear-gradient(90deg, transparent 0 95px, rgba(92,61,46,0.035) 95px 96px),
+        radial-gradient(circle at 50% 32%,
+          transparent 70px, rgba(139,115,85,0.06) 71px 72px, transparent 75px,
+          transparent 105px, rgba(139,115,85,0.045) 106px 107px, transparent 110px),
+        linear-gradient(180deg, rgba(252,248,240,0.55) 0%, transparent 14%),
+        linear-gradient(0deg, rgba(139,115,85,0.07) 0%, transparent 12%);
     }
     .info-panel .panel-title {
       font-size: 17px; font-weight: bold; color: var(--ink-dark);
@@ -354,6 +454,19 @@
     .bottom-scape {
       position: absolute; bottom: 0; left: 0; right: 0; height: 120px;
       pointer-events: none; z-index: 3;
+      /* 云雾垫底：地图下缘渐渐隐入水雾 */
+      background: linear-gradient(0deg,
+        rgba(247,241,227,0.88) 0%,
+        rgba(247,241,227,0.42) 36%,
+        transparent 100%);
+    }
+    /* 长卷底部：水墨山峦云雾（提取自参考长卷，左右对置、中段留白保持干净） */
+    .bottom-scape::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        url("assets/mist-bottom.png") no-repeat right bottom / 46% 100%,
+        url("assets/mist-bottom-left.png") no-repeat left bottom / 42% 100%;
+      opacity: 0.55;
     }
     /* 山峦层 */
     .mountain-bg { position: absolute; bottom: 0; left: 0; right: 0; }
@@ -450,6 +563,8 @@
     .map-area    { animation: fadeIn 0.9s 0.1s var(--ease-soft) both; }
     .info-panel  { animation: fadeInUp 0.7s 0.18s var(--ease-soft) both; }
     .bottom-scape { animation: fadeIn 1.2s 0.4s var(--ease-soft) both; }
+    /* 背景纹理层随页面一同淡入 */
+    body::before, body::after { animation: fadeIn 1.4s var(--ease-soft) both; }
 
     /* 尊重用户"减少动效"系统偏好 */
     @media (prefers-reduced-motion: reduce) {
