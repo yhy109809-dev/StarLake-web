@@ -2126,7 +2126,7 @@
         if (r.id === cur.id) continue;
         const ov = routeSvgOverlays[r.id];
         const el = ov && ov.getElement && ov.getElement();
-        if (el) el.style.opacity = '0';
+        if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
       }
       const el = routeSvgOverlays[cur.id] && routeSvgOverlays[cur.id].getElement();
       if (el) {
