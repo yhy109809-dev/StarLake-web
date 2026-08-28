@@ -1162,9 +1162,9 @@
         maxZoom: 3,
       });
       L.imageOverlay('assets/early-route-map.png', earlyBounds).addTo(earlyMap);
-      earlyMap.fitBounds(earlyBounds);
+      earlyMap.fitBounds(earlyBounds, { animate: false }); // 初始全览(瞬时,不动画)
       document.getElementById('btnEarlyReset').addEventListener('click', () => {
-        earlyMap.fitBounds(earlyBounds);
+        earlyMap.flyToBounds(earlyBounds, { duration: 1.4, easeLinearity: 0.22 }); // 复位:平滑飞回全览
       });
       // 拖拽/缩放期间抑制点击，防止拖图松手时误触点位；同时隐去地图回声地名
       earlyMap.on('movestart', () => { routeClickSuppressed = true; destroyMapEcho(); });
@@ -1752,7 +1752,8 @@
       const pad = 30; // viewBox 单位外扩,给四周标签留呼吸空间
       const west = (bb.x - pad) * sx, east = (bb.x + bb.w + pad) * sx;
       const north = -(bb.y - pad) * sy, south = -(bb.y + bb.h + pad) * sy;
-      earlyMap.fitBounds([[south, west], [north, east]], { padding: [50, 50], maxZoom: 2 });
+      // 平滑飞行到当前路线:1.4秒缓动,先平移后缩放的连贯轨迹
+      earlyMap.flyToBounds([[south, west], [north, east]], { padding: [50, 50], maxZoom: 2, duration: 1.4, easeLinearity: 0.22 });
     }
 
     async function showRoute(i) {
@@ -2043,9 +2044,8 @@
             // 覆盖层由隐藏转为可见后修正尺寸，复位到完整视图并开启滚轮缩放
             setTimeout(() => {
               earlyMap.invalidateSize();
-              earlyMap.fitBounds(earlyBounds);
               earlyMap.scrollWheelZoom.enable();
-              showRoute(routeIndex); // 显示当前程路线 SVG（与底图同缩放同平移）
+              showRoute(routeIndex); // 显示当前程路线并平滑飞行到对应位置
             }, 60);
             break;
           case 'late':
