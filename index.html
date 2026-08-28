@@ -632,6 +632,129 @@
       pointer-events: none; font-family: "KaiTi", "STKaiti", serif;
     }
 
+    /* ===== 九程路线：进度标签（左上角） ===== */
+    .route-stage {
+      position: absolute; top: 12px; left: 14px; z-index: 600; pointer-events: none;
+      font-family: "KaiTi", "STKaiti", serif; font-size: 13px;
+      color: var(--ink-mid); letter-spacing: 2px; line-height: 1.6;
+      background: linear-gradient(135deg, rgba(252,246,232,0.92), rgba(245,236,220,0.85));
+      border: 1px solid rgba(196,169,125,0.5); border-radius: 4px;
+      padding: 5px 12px; box-shadow: 0 2px 8px rgba(44,24,16,0.08);
+    }
+    .route-stage .stage-year { font-size: 10px; color: var(--ink-light); letter-spacing: 1px; }
+
+    /* ===== 九程路线：水墨风"下一程"开关（底部居中） ===== */
+    .route-next-btn {
+      position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 600; cursor: pointer; border: none; outline: none;
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 18px 9px 12px; border-radius: 22px;
+      background:
+        radial-gradient(ellipse 60% 100% at 50% 0%, rgba(255,255,255,0.14), transparent 70%),
+        radial-gradient(ellipse 120% 90% at 50% 110%, rgba(0,0,0,0.25), transparent 60%),
+        linear-gradient(160deg, #3d2417 0%, #2c1810 55%, #1f0f08 100%);
+      color: #f0e6cc; font-family: "KaiTi", "STKaiti", serif;
+      font-size: 13px; letter-spacing: 3px;
+      border: 1px solid rgba(196,169,125,0.55);
+      box-shadow: 0 4px 14px rgba(44,24,16,0.3), inset 0 0 12px rgba(0,0,0,0.35);
+      transition: transform 0.3s var(--ease-soft), box-shadow 0.3s var(--ease-soft);
+    }
+    .route-next-btn::before {
+      content: "程"; width: 24px; height: 24px; border-radius: 4px; flex: 0 0 24px;
+      background: linear-gradient(135deg, #c0392b 0%, #9c2817 100%);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,245,230,0.95); font-size: 13px; font-weight: bold;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4); letter-spacing: 0;
+    }
+    .route-next-btn:hover {
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 8px 20px rgba(44,24,16,0.4), inset 0 0 12px rgba(0,0,0,0.35);
+    }
+    .route-next-btn:active { transform: translateX(-50%) scale(0.95); }
+    .route-next-btn.shake { animation: btnShake 0.4s var(--ease-soft); }
+    @keyframes btnShake {
+      0%, 100% { transform: translateX(-50%); }
+      25% { transform: translateX(-50%) translateX(-4px); }
+      75% { transform: translateX(-50%) translateX(4px); }
+    }
+
+    /* ===== 九程路线：轻提示 toast ===== */
+    .route-toast {
+      position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%);
+      z-index: 700; background: rgba(44,24,16,0.92); color: #f0e6cc;
+      font-size: 11px; letter-spacing: 2px; padding: 6px 14px;
+      border-radius: 4px; border: 1px solid rgba(196,169,125,0.4);
+      font-family: "KaiTi", "STKaiti", serif;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .route-toast.show { opacity: 1; }
+
+    /* ===== 点位信息面板（右侧滑出） ===== */
+    .point-panel {
+      position: absolute; top: 20px; right: 20px; bottom: 70px; width: min(330px, 70%);
+      z-index: 650; display: flex; flex-direction: column; overflow: hidden;
+      background: linear-gradient(135deg, rgba(252,246,232,0.97) 0%, rgba(245,236,220,0.95) 100%);
+      border: 1px solid var(--accent-gold); border-radius: 8px;
+      box-shadow: -6px 6px 28px rgba(44,24,16,0.22), inset 0 0 0 1px rgba(196,169,125,0.3);
+      transform: translateX(calc(100% + 40px));
+      transition: transform 0.45s var(--ease-soft);
+    }
+    .point-panel.show { transform: translateX(0); }
+    .point-panel .pp-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px 10px; border-bottom: 1px solid rgba(196,169,125,0.4);
+    }
+    .point-panel .pp-badge {
+      font-family: "KaiTi", "STKaiti", serif; font-size: 11px; color: #fff;
+      background: linear-gradient(135deg, #c0392b 0%, #9c2817 100%);
+      border-radius: 3px; padding: 2px 7px; letter-spacing: 2px; flex: 0 0 auto;
+    }
+    .point-panel .pp-badge.brief { background: linear-gradient(135deg, #2c5f8a 0%, #1d4463 100%); }
+    .point-panel .pp-title {
+      font-family: "KaiTi", "STKaiti", serif; font-size: 16px; font-weight: bold;
+      color: var(--ink-dark); letter-spacing: 2px; flex: 1;
+    }
+    .point-panel .pp-close {
+      cursor: pointer; border: none; background: none; color: var(--ink-light);
+      font-size: 18px; line-height: 1; padding: 2px 4px;
+    }
+    .point-panel .pp-close:hover { color: var(--accent-red); }
+    .point-panel .pp-body { flex: 1; overflow-y: auto; padding: 12px 14px 14px; }
+    .point-panel .pp-sub { font-size: 10px; color: var(--ink-light); letter-spacing: 2px; margin-bottom: 8px; }
+    .point-panel .pp-img {
+      width: 100%; border-radius: 5px; border: 1px solid rgba(196,169,125,0.5);
+      overflow: hidden; margin-bottom: 10px; background: #ece0c4;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .point-panel .pp-img.detail { aspect-ratio: 3 / 4; }
+    .point-panel .pp-img.brief { aspect-ratio: 4 / 3; }
+    .point-panel .pp-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .point-panel .pp-img .img-ph {
+      text-align: center; color: var(--ink-light); font-size: 11px;
+      letter-spacing: 1px; line-height: 1.9; opacity: 0.75; padding: 8px;
+    }
+    .point-panel .pp-text {
+      font-size: 12.5px; line-height: 2; color: var(--ink-mid);
+      letter-spacing: 0.5px; text-align: justify; text-indent: 2em;
+    }
+    .point-panel .pp-text + .pp-text { margin-top: 8px; }
+    .point-panel .pp-fun {
+      margin-top: 10px; padding: 9px 11px;
+      background: rgba(196,169,125,0.12); border-left: 3px solid var(--accent-red);
+      border-radius: 4px; font-size: 12px; line-height: 1.95; color: var(--ink-mid);
+    }
+    .point-panel .pp-fun b { color: var(--accent-red); }
+    .point-panel .pp-tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .point-panel .pp-tags span {
+      font-size: 10px; color: var(--ink-light);
+      border: 1px solid rgba(196,169,125,0.5); padding: 2px 8px;
+      border-radius: 10px; letter-spacing: 1px;
+    }
+
+    /* 路线 SVG 内的热点样式（SVG 随 overlay 注入 DOM，页面样式可作用于其内部） */
+    .pt-hot { cursor: pointer; }
+    .pt-hot:hover, .pt-hot.lit { fill: #c0392b; }
+
     /* ==========================================
        第四章：文学与科学价值
        ========================================== */
@@ -871,7 +994,13 @@
     <div class="wechat-img-wrap" id="wechatImgWrap">
       <div id="earlyMapContainer"></div>
       <button class="map-ctrl-btn early-reset-btn" id="btnEarlyReset" data-tip="复位视图" title="复位">⟲</button>
-      <div class="early-map-tip">滚轮缩放 · 拖拽平移</div>
+      <div class="early-map-tip">滚轮缩放 · 拖拽平移 · 点击亮点看故事</div>
+
+      <!-- 九程路线 UI -->
+      <div class="route-stage" id="routeStage"></div>
+      <button class="route-next-btn" id="btnNextRoute">下一程</button>
+      <div class="route-toast" id="routeToast"></div>
+      <div class="point-panel" id="pointPanel"></div>
     </div>
   </main>
 
@@ -997,6 +1126,7 @@
     let earlyMap = null;
     // 按原图宽高比 1055:1491 设置 bounds（CRS.Simple 纵轴向下，故 y 取负）
     const earlyBounds = [[0, 0], [-1491, 1055]];
+    let routeClickSuppressed = false; // 拖拽后抑制误触点击
 
     function ensureEarlyMap() {
       if (earlyMap) return; // 只创建一次，之后复用
@@ -1013,6 +1143,141 @@
       earlyMap.fitBounds(earlyBounds);
       document.getElementById('btnEarlyReset').addEventListener('click', () => {
         earlyMap.fitBounds(earlyBounds);
+      });
+      // 拖拽/缩放期间抑制点击，防止拖图松手时误触点位
+      earlyMap.on('movestart', () => { routeClickSuppressed = true; });
+      earlyMap.on('moveend dragend', () => { setTimeout(() => { routeClickSuppressed = false; }, 80); });
+      initRouteSystem();
+    }
+
+    // ===== 九程路线系统（依次显示 + 水墨风开关 + 点位交互） =====
+    const ROUTES = [
+      {
+        id: 'qilu', file: 'assets/route-1608-qilu.svg',
+        no: '第一程', name: '齐鲁行', year: '万历三十六年（1608）',
+        points: [
+          {
+            type: 'detail', name: '泰山 · 岱宗',
+            img: 'assets/img/qilu-taishan.jpg', imgSize: '900×1200 px（3:4 竖版，水墨/古风插画，主色米黄·黛青，上留云海空间）',
+            sub: '万历三十六年 · 齐鲁之行',
+            paras: [
+              '《徐霞客游记》流传至今的六十余万字中，齐鲁一卷不幸散佚，这趟北行只留下"历齐鲁佳山水"一句总评（见陈函辉《徐霞客墓志铭》）。也正因如此，这条路线成了霞客早年行迹中最神秘的一段。',
+              '据方志与后人考述演绎：徐霞客自江阴启程，镇江渡江，沿运河北上，经扬州、淮安入鲁。时值初雪新霁，他夜宿山麓，五更即起，裹衣秉烛夜登十八盘——石阶陡处几乎手脚并用，童仆连呼"险绝"。',
+              '及至岱顶，恰逢云开，旭日跃出云海，天地尽赤。他在日观峰默立良久。此前他所见皆是江南秀色，而泰山给了他第一次"大山大水"的震撼——不少学者认为，正是这趟北游，让他此后敢于万里遐征。',
+            ],
+            fun: '<b>趣闻 · 演绎</b>：下山时樵夫见这位江南书生不烧香、不看戏，只顾用脚步丈量石阶、细察岩层走向，笑问："客官是来进香，还是来量山？"——"量山"二字，恰是徐霞客一生的注脚。',
+            tags: ['#雪后望日', '#十八盘', '#北游第一山', '#游记散佚之谜'],
+          },
+          {
+            type: 'brief', name: '曲阜 · 孔庙',
+            img: 'assets/img/qilu-qufu.jpg', imgSize: '1200×900 px（4:3 横版，水墨/古风插画，主色米黄·赭石）',
+            sub: '万历三十六年 · 齐鲁之行',
+            paras: [
+              '入鲁先谒圣。徐霞客在曲阜停留未久：孔庙大成殿前，古桧如虬、碑碣如林，他驻足观之良久，一宿而去。读书人与旅行家，在他身上原是同一个人。',
+            ],
+            fun: '',
+            tags: ['#一宿而去', '#大成殿古桧'],
+          },
+        ],
+      },
+      // 其余八程：SVG 与文案就绪后，按相同结构在此追加即可，按钮与展示逻辑自动生效
+    ];
+
+    let routeIndex = 0;
+    const routeSvgOverlays = {}; // route.id -> L.svgOverlay（缓存，避免重复加载）
+
+    function loadRouteOverlay(route) {
+      return fetch(route.file)
+        .then(r => r.text())
+        .then(txt => {
+          const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+          const el = document.importNode(doc.documentElement, true);
+          const overlay = L.svgOverlay(el, earlyBounds, { interactive: true });
+          routeSvgOverlays[route.id] = overlay;
+          return overlay;
+        });
+    }
+
+    function bindRouteInteractions(route) {
+      const el = routeSvgOverlays[route.id].getElement();
+      el.querySelectorAll('.hit').forEach(hit => {
+        hit.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          if (routeClickSuppressed) return; // 拖拽结束的误触，忽略
+          const pt = route.points.find(p => p.type === hit.dataset.type);
+          if (pt) openPointPanel(pt);
+        });
+      });
+      // 点位悬停点亮相邻的白点圆点
+      el.querySelectorAll('.pt-hot').forEach(dot => {
+        const hit = el.querySelector(`.hit[data-type="${dot.id.replace('pt-', '')}"]`);
+        if (!hit) return;
+        hit.addEventListener('mouseenter', () => dot.classList.add('lit'));
+        hit.addEventListener('mouseleave', () => dot.classList.remove('lit'));
+      });
+    }
+
+    async function showRoute(i) {
+      const route = ROUTES[i];
+      Object.values(routeSvgOverlays).forEach(o => o.remove());
+      if (!route) return;
+      if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
+      routeSvgOverlays[route.id].addTo(earlyMap);
+      bindRouteInteractions(route);
+      document.getElementById('routeStage').innerHTML =
+        `${route.no} · ${route.name}<br><span class="stage-year">${route.year}</span>`;
+      closePointPanel();
+    }
+
+    function openPointPanel(pt) {
+      const panel = document.getElementById('pointPanel');
+      const imgs = pt.img
+        ? `<img src="${pt.img}" alt="${pt.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+           <div class="img-ph" style="display:none;flex-direction:column;">配图位<br>${pt.imgSize}</div>`
+        : `<div class="img-ph" style="flex-direction:column;">配图位<br>${pt.imgSize || ''}</div>`;
+      const badge = pt.type === 'detail' ? '详' : '略';
+      panel.innerHTML = `
+        <div class="pp-head">
+          <span class="pp-badge ${pt.type === 'brief' ? 'brief' : ''}">${badge}</span>
+          <div class="pp-title">${pt.name}</div>
+          <button class="pp-close" title="收起">✕</button>
+        </div>
+        <div class="pp-body">
+          <div class="pp-sub">${pt.sub}</div>
+          <div class="pp-img ${pt.type}">${imgs}</div>
+          ${pt.paras.map(t => `<p class="pp-text">${t}</p>`).join('')}
+          ${pt.fun ? `<div class="pp-fun">${pt.fun}</div>` : ''}
+          ${pt.tags && pt.tags.length ? `<div class="pp-tags">${pt.tags.map(t => `<span>${t}</span>`).join('')}</div>` : ''}
+        </div>`;
+      panel.querySelector('.pp-close').addEventListener('click', closePointPanel);
+      panel.classList.add('show');
+    }
+
+    function closePointPanel() {
+      document.getElementById('pointPanel').classList.remove('show');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('routeToast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function initRouteSystem() {
+      showRoute(routeIndex);
+      document.getElementById('btnNextRoute').addEventListener('click', () => {
+        if (ROUTES.length < 2) {
+          const btn = document.getElementById('btnNextRoute');
+          btn.classList.remove('shake');
+          void btn.offsetWidth; // 重启动画
+          btn.classList.add('shake');
+          showToast('后续八程 · 整理中，敬请期待');
+          return;
+        }
+        routeIndex = (routeIndex + 1) % ROUTES.length;
+        showRoute(routeIndex);
       });
     }
 
@@ -1034,6 +1299,7 @@
         clearRoutes();
         // 路线图查看器默认隐藏（模块二显示时再开启）
         wechatImgWrap.classList.remove('show');
+        closePointPanel();
         // 离开模块二时停用查看器滚轮缩放，避免滚动事件残留
         if (earlyMap) { earlyMap.scrollWheelZoom.disable(); }
 
@@ -1084,6 +1350,7 @@
               earlyMap.invalidateSize();
               earlyMap.fitBounds(earlyBounds);
               earlyMap.scrollWheelZoom.enable();
+              showRoute(routeIndex); // 显示当前程路线 SVG（与底图同缩放同平移）
             }, 60);
             break;
           case 'late':
