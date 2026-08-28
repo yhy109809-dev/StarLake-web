@@ -85,6 +85,27 @@
         linear-gradient(180deg, rgba(252,247,238,0.5) 0%, transparent 10%);
     }
 
+    /* ===== 水墨装饰图片层（托管于 GitHub 图床：yhy109809-dev/xu-xiake-images） ===== */
+    .deco-layer {
+      position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden;
+    }
+    .deco-layer .deco {
+      position: absolute; user-select: none; -webkit-user-drag: none;
+    }
+    .deco-layer .deco-figure-left {
+      left: 0; bottom: 0; width: clamp(150px, 21vw, 340px); opacity: 0.92;
+    }
+    .deco-layer .deco-mist-bottom {
+      left: 50%; bottom: 0; transform: translateX(-50%);
+      width: min(88vw, 1400px); opacity: 0.4;
+    }
+    .deco-layer .deco-mist-bottom-left {
+      left: 0; bottom: 0; width: min(46vw, 560px); opacity: 0.45;
+    }
+    .deco-layer .deco-mountains-right {
+      right: 0; bottom: 0; width: min(30vw, 420px); opacity: 0.6;
+    }
+
     /* ==========================================
        左侧侧边栏 18%
        ========================================== */
@@ -717,6 +738,14 @@
   </style>
 </head>
 <body>
+
+  <!-- ==================== 水墨装饰图片（GitHub 图床） ==================== -->
+  <div class="deco-layer">
+    <img class="deco deco-mist-bottom-left" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mist-bottom-left.png" alt="左下雾气">
+    <img class="deco deco-mist-bottom" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mist-bottom.png" alt="底部雾气">
+    <img class="deco deco-mountains-right" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mountains-right.png" alt="右侧远山">
+    <img class="deco deco-figure-left" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/figure-left.png" alt="山水人物剪影">
+  </div>
 
   <!-- ==================== 左侧侧边栏 18% ==================== -->
   <aside class="sidebar" id="sidebar">
