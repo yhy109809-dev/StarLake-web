@@ -755,6 +755,20 @@
     .pt-hot { cursor: pointer; }
     .pt-hot:hover, .pt-hot.lit { fill: #c0392b; }
 
+    /* ===== EchoText 回声字效（点位面板标题，移植自 React Bits 原生 JS 版） ===== */
+    .point-panel .pp-title.echo-text {
+      display: inline-block; position: relative; white-space: nowrap;
+      line-height: 1.2; letter-spacing: 2px; user-select: none;
+    }
+    .echo-text__echo {
+      position: absolute; inset: 0; display: block; pointer-events: none;
+      will-change: transform, opacity; backface-visibility: hidden;
+    }
+    .echo-text__echo--front { position: relative; z-index: 2; opacity: 1; filter: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .echo-text__echo:not(.echo-text__echo--front) { display: none; }
+    }
+
     /* ==========================================
        第四章：文学与科学价值
        ========================================== */
@@ -1710,6 +1724,119 @@
       closePointPanel();
     }
 
+    // ===== EchoText 回声字效（移植自 React Bits，原生 JS 版；用于点位面板标题） =====
+    let echoFrame = null;
+    let echoPointerMove = null;
+    let echoPointerLeave = null;
+
+    function mountEchoText(el, text) {
+      const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+      const vectors = { right:{x:1,y:0}, left:{x:-1,y:0}, up:{x:0,y:-1}, down:{x:0,y:1}, diagonal:{x:0.72,y:0.72} };
+      const easings = {
+        linear: t => t,
+        'ease-out': t => 1 - Math.pow(1 - t, 3),
+        'ease-in-out': t => (t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2),
+        snappy: t => 1 - Math.pow(1 - t, 5),
+      };
+      const opts = { echoes: 7, lag: 0.22, offset: 16, direction: 'right', fade: 0.62,
+                     blur: 2, tint: '#c4a97d', mode: 'both', cursorRadius: 260, duration: 800, ease: 'ease-out' };
+      const color = '#2c1810';
+
+      // 清理上一次实例
+      if (echoFrame) { cancelAnimationFrame(echoFrame); echoFrame = null; }
+      if (echoPointerMove) { window.removeEventListener('pointermove', echoPointerMove); echoPointerMove = null; }
+      if (echoPointerLeave) { document.removeEventListener('pointerleave', echoPointerLeave); echoPointerLeave = null; }
+
+      const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const echoCount = reduced ? 0 : clamp(Math.round(opts.echoes), 0, 24);
+
+      // 构建回声层（深->浅）+ 前景层
+      el.classList.add('echo-text');
+      el.textContent = '';
+      const spans = [];
+      for (let i = echoCount; i >= 1; i--) {
+        const s = document.createElement('span');
+        s.className = 'echo-text__echo';
+        s.setAttribute('aria-hidden', 'true');
+        s.textContent = text;
+        s.style.color = color; // 回退色
+        if (opts.tint) s.style.color = `color-mix(in srgb, ${opts.tint} ${Math.min(72, 18 + i*5)}%, ${color})`;
+        s.style.opacity = '0';
+        el.appendChild(s); spans[i] = s;
+      }
+      const front = document.createElement('span');
+      front.className = 'echo-text__echo echo-text__echo--front';
+      front.textContent = text;
+      el.appendChild(front); spans[0] = front;
+      if (reduced || echoCount === 0) return;
+
+      const vector = vectors[opts.direction] || vectors.right;
+      const safeOffset = clamp(opts.offset, 0, 120);
+      const safeCursor = clamp(opts.cursorRadius, 40, 1200);
+      const safeLag = clamp(opts.lag, 0.02, 0.5);
+      const safeFade = clamp(opts.fade, 0.1, 0.95);
+      const safeBlur = clamp(opts.blur, 0, 16);
+      const easeFn = easings[opts.ease] || easings['ease-out'];
+      const entranceEnabled = opts.mode !== 'pointer';
+      const pointerEnabled = opts.mode !== 'entrance';
+
+      const positions = Array.from({ length: echoCount + 1 }, () => ({ x: 0, y: 0 }));
+      const state = { tx: 0, ty: 0, lx: 0, ly: 0, activity: entranceEnabled ? 1 : 0, startTime: performance.now() };
+
+      const handleMove = ev => {
+        const rect = el.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const dx = ev.clientX - (rect.left + rect.width/2);
+        const dy = ev.clientY - (rect.top + rect.height/2);
+        const dist = Math.hypot(dx, dy);
+        const reach = dist > 0 ? clamp(dist / safeCursor, 0, 1) : 0;
+        state.tx = (dist > 0 ? dx/dist : 0) * reach * safeOffset;
+        state.ty = (dist > 0 ? dy/dist : 0) * reach * safeOffset * 0.72;
+        if (echoFrame === null) echoFrame = requestAnimationFrame(render);
+      };
+      const handleLeave = () => { state.tx = 0; state.ty = 0; };
+
+      if (pointerEnabled && window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        echoPointerMove = handleMove;
+        echoPointerLeave = handleLeave;
+        window.addEventListener('pointermove', handleMove, { passive: true });
+        document.addEventListener('pointerleave', handleLeave);
+      }
+
+      const render = now => {
+        const elapsed = now - state.startTime;
+        const progress = entranceEnabled && opts.duration > 0 ? clamp(elapsed / opts.duration, 0, 1) : 1;
+        const entranceRest = entranceEnabled ? 1 - easeFn(progress) : 0;
+        const velocity = Math.hypot(state.tx - state.lx, state.ty - state.ly);
+        state.lx = state.tx; state.ly = state.ty;
+        let maxSep = 0;
+        for (let i = 0; i <= echoCount; i++) {
+          const copy = spans[i], cur = positions[i];
+          if (!copy || !cur) continue;
+          const amt = entranceRest * safeOffset * (i + 0.35);
+          const dx = state.tx + vector.x * amt, dy = state.ty + vector.y * amt;
+          const lerp = clamp(0.34 / (1 + i * safeLag * 4.2), 0.018, 0.36);
+          cur.x += (dx - cur.x) * lerp;
+          cur.y += (dy - cur.y) * lerp;
+          copy.style.transform = `translate3d(${cur.x.toFixed(3)}px, ${cur.y.toFixed(3)}px, 0)`;
+          if (i > 0) {
+            const f = positions[0];
+            maxSep = Math.max(maxSep, f ? Math.hypot(cur.x - f.x, cur.y - f.y) : 0);
+            copy.style.filter = safeBlur > 0 ? `blur(${(safeBlur * (i / echoCount)).toFixed(2)}px)` : 'none';
+          }
+        }
+        const sepAct = safeOffset > 0 ? clamp(maxSep / (safeOffset * 2.25), 0, 1) : 0;
+        const tgtAct = safeOffset > 0 ? clamp(velocity / (safeOffset * 0.35), 0, 1) : 0;
+        state.activity += (Math.max(entranceRest, sepAct, tgtAct) - state.activity) * 0.18;
+        for (let i = 1; i <= echoCount; i++) {
+          if (spans[i]) spans[i].style.opacity = String(Math.pow(safeFade, i) * state.activity);
+        }
+        const still = state.activity > 0.002 || Math.abs(state.tx) > 0.01 || Math.abs(state.ty) > 0.01 || progress < 1;
+        echoFrame = still ? requestAnimationFrame(render) : null;
+      };
+      echoFrame = requestAnimationFrame(render);
+    }
+
     function openPointPanel(pt) {
       const panel = document.getElementById('pointPanel');
       const imgs = pt.img
@@ -1732,6 +1859,7 @@
         </div>`;
       panel.querySelector('.pp-close').addEventListener('click', closePointPanel);
       panel.classList.add('show');
+      mountEchoText(panel.querySelector('.pp-title'), pt.name);
     }
 
     function closePointPanel() {
