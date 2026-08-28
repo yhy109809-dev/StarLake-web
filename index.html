@@ -597,24 +597,39 @@
     }
 
     /* ==========================================
-       模块二：前期名山漫游路线图（cover 放大显示，背景与图片宣纸底色融合）
+       模块二：前期名山漫游路线图（Leaflet 纯图片查看器，可缩放/平移/复位）
        ========================================== */
     .wechat-img-wrap {
       position: absolute; inset: 20px;
       z-index: 7; pointer-events: none;
       opacity: 0; visibility: hidden;
       transition: opacity 0.45s ease;
-      background: #ead9b4;
+      background: #f0e6cc;
       border-radius: 8px;
       box-shadow: 0 6px 20px rgba(44, 24, 16, 0.10);
+      overflow: hidden;
     }
     .wechat-img-wrap.show {
       opacity: 1; visibility: visible;
+      pointer-events: auto;
     }
-    .wechat-img-wrap img {
-      width: 100%; height: 100%;
-      object-fit: cover; object-position: center;
-      display: block;
+    /* 图片查看器容器（Leaflet CRS.Simple 纯图片地图） */
+    #earlyMapContainer {
+      position: absolute; inset: 0;
+      background: #f0e6cc;
+      border-radius: 8px;
+    }
+    /* 查看器复位按钮：复用 .map-ctrl-btn 古风圆形样式 */
+    .early-reset-btn {
+      position: absolute; right: 12px; bottom: 12px; z-index: 500;
+    }
+    /* 查看器提示语 */
+    .early-map-tip {
+      position: absolute; left: 14px; bottom: 12px; z-index: 500;
+      font-size: 11px; color: rgba(92,61,46,0.55); letter-spacing: 2px;
+      background: rgba(252,248,240,0.7); padding: 3px 10px;
+      border-radius: 3px; border: 1px solid rgba(196,169,125,0.35);
+      pointer-events: none; font-family: "KaiTi", "STKaiti", serif;
     }
 
     /* ==========================================
@@ -852,9 +867,11 @@
       </div>
     </div>
 
-    <!-- ==================== 模块二：前期名山漫游路线图（完整显示于地图区） ==================== -->
+    <!-- ==================== 模块二：前期名山漫游路线图（Leaflet 可缩放查看器） ==================== -->
     <div class="wechat-img-wrap" id="wechatImgWrap">
-      <img src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/route-map.png" alt="前期名山漫游路线图">
+      <div id="earlyMapContainer"></div>
+      <button class="map-ctrl-btn early-reset-btn" id="btnEarlyReset" data-tip="复位视图" title="复位">⟲</button>
+      <div class="early-map-tip">滚轮缩放 · 拖拽平移</div>
     </div>
   </main>
 
@@ -976,6 +993,29 @@
       markersGroup.clearLayers();
     }
 
+    // ===== 模块二：前期路线图查看器（Leaflet CRS.Simple 纯图片地图） =====
+    let earlyMap = null;
+    // 按原图宽高比 1055:1491 设置 bounds（CRS.Simple 纵轴向下，故 y 取负）
+    const earlyBounds = [[0, 0], [-1491, 1055]];
+
+    function ensureEarlyMap() {
+      if (earlyMap) return; // 只创建一次，之后复用
+      earlyMap = L.map('earlyMapContainer', {
+        crs: L.CRS.Simple,
+        attributionControl: false,
+        zoomControl: false,
+        scrollWheelZoom: true,
+        zoomSnap: 0.25,
+        minZoom: -1,
+        maxZoom: 3,
+      });
+      L.imageOverlay('assets/early-route-map.png', earlyBounds).addTo(earlyMap);
+      earlyMap.fitBounds(earlyBounds);
+      document.getElementById('btnEarlyReset').addEventListener('click', () => {
+        earlyMap.fitBounds(earlyBounds);
+      });
+    }
+
     // ===== 章节切换 =====
     const chapterCards = document.querySelectorAll('.chapter-card');
     const valuePanels = document.getElementById('valuePanels');
@@ -992,8 +1032,10 @@
 
         // 切换地图视图
         clearRoutes();
-        // 地形图默认隐藏（模块二显示时再开启）
+        // 路线图查看器默认隐藏（模块二显示时再开启）
         wechatImgWrap.classList.remove('show');
+        // 离开模块二时停用查看器滚轮缩放，避免滚动事件残留
+        if (earlyMap) { earlyMap.scrollWheelZoom.disable(); }
 
         // ===== 第四章：文学与科学价值 =====
         if (chapter === 'value') {
@@ -1034,8 +1076,15 @@
             });
             markersGroup.addTo(map);
             map.fitBounds([[27, 114], [31, 122]], { padding: [40, 40] });
-            // 模块二：居中展示微信名字图片
+            // 模块二：显示可缩放的路线图查看器
             wechatImgWrap.classList.add('show');
+            ensureEarlyMap();
+            // 覆盖层由隐藏转为可见后修正尺寸，复位到完整视图并开启滚轮缩放
+            setTimeout(() => {
+              earlyMap.invalidateSize();
+              earlyMap.fitBounds(earlyBounds);
+              earlyMap.scrollWheelZoom.enable();
+            }, 60);
             break;
           case 'late':
             // 聚焦后期路线
