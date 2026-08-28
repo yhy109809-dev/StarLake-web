@@ -777,6 +777,9 @@
       text-shadow: 0 0 6px rgba(244,236,216,0.95), 0 0 14px rgba(244,236,216,0.75);
     }
 
+    /* ===== 路线 overlay 淡入淡出 ===== */
+    .route-fade { transition: opacity 0.6s ease; }
+
     /* ==========================================
        第四章：文学与科学价值
        ========================================== */
@@ -969,9 +972,8 @@
     </div>
     <!-- 地图控件 -->
     <div class="map-controls">
-      <button class="map-ctrl-btn" data-tip="复位视角" title="指南针" id="btnCompass">🧭</button>
-      <button class="map-ctrl-btn" data-tip="全览路线" title="定位" id="btnLocate">📍</button>
-      <button class="map-ctrl-btn" data-tip="切换图层" title="图层" id="btnLayers">🗂</button>
+      <button class="map-ctrl-btn" data-tip="回到当前路程" title="回到当前路程" id="btnCompass">🧭</button>
+      <button class="map-ctrl-btn" data-tip="全览九程路线" title="全览" id="btnLocate">📍</button>
     </div>
     <!-- 底部水墨 -->
     <div class="bottom-scape">
@@ -1668,6 +1670,12 @@
       },
     ];
 
+    // 九程路线各自的水墨配色(全览模式使用)
+    const ROUTE_COLORS = {
+      qilu: '#c0392b', zhedong: '#2c5f8a', huimin: '#3e7540', yixing: '#b8860b',
+      lushan: '#6b4f9e', jianglang: '#d17a22', zhongyuan: '#a03a5e', minyue: '#22808c', jinbei: '#5a5a8f',
+    };
+
     let routeIndex = 0;
     const routeSvgOverlays = {}; // route.id -> L.svgOverlay（缓存，避免重复加载）
 
@@ -1675,7 +1683,10 @@
       const make = (txt) => {
         const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
         const el = document.importNode(doc.documentElement, true);
-        const overlay = L.svgOverlay(el, earlyBounds, { interactive: true });
+        // 路线按程配色(全览模式可辨识)
+        const line = el.querySelector('[id^="rt-"] path');
+        if (line && ROUTE_COLORS[route.id]) line.style.stroke = ROUTE_COLORS[route.id];
+        const overlay = L.svgOverlay(el, earlyBounds, { interactive: true, className: 'route-fade' });
         routeSvgOverlays[route.id] = overlay;
         return overlay;
       };
@@ -1758,15 +1769,28 @@
 
     async function showRoute(i) {
       const route = ROUTES[i];
-      Object.values(routeSvgOverlays).forEach(o => o.remove());
       if (!route) return;
+      overviewMode = false; // 切换程即退出全览模式
+      // 其他路线平滑淡出(保留挂载,透明度归零)
+      for (const r of ROUTES) {
+        if (r.id === route.id) continue;
+        const ov = routeSvgOverlays[r.id];
+        const el = ov && ov.getElement && ov.getElement();
+        if (el) el.style.opacity = '0';
+      }
       document.getElementById('routeStage').innerHTML =
         `${route.no} · ${route.name}<br><span class="stage-year">${route.year}</span>`;
       const nextRoute = ROUTES[(i + 1) % ROUTES.length];
       document.getElementById('btnNextRoute').textContent = `下一程 · ${nextRoute.name}`;
       try {
         if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
-        routeSvgOverlays[route.id].addTo(earlyMap);
+        const ov = routeSvgOverlays[route.id];
+        ov.addTo(earlyMap);
+        const el = ov.getElement();
+        // 当前路线:恢复文字与交互
+        el.querySelectorAll('text, circle').forEach(n => n.style.display = '');
+        el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = '');
+        requestAnimationFrame(() => { el.style.opacity = '1'; });
         bindRouteInteractions(route);
         focusRouteView(route.id); // 视野自动跟随到当前路线
       } catch (err) {
@@ -2072,15 +2096,52 @@
       });
     });
 
-    // ===== 地图控件 =====
+    // ===== 地图控件(作用于前期名山漫游路线查看器) =====
+    let overviewMode = false;
+    const inEarlyChapter = () => earlyMap && wechatImgWrap.classList.contains('show');
+    const gotoEarlyChapter = () => document.querySelector('.chapter-card[data-chapter="early"]').click();
+
+    async function enterOverview() {
+      overviewMode = true;
+      closePointPanel();
+      for (const r of ROUTES) {
+        if (!routeSvgOverlays[r.id]) await loadRouteOverlay(r);
+        const ov = routeSvgOverlays[r.id];
+        ov.addTo(earlyMap);
+        const el = ov.getElement();
+        // 全览:隐藏文字与点位,仅显示各自配色的路线
+        el.querySelectorAll('text, circle').forEach(n => n.style.display = 'none');
+        el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = 'none');
+        requestAnimationFrame(() => { el.style.opacity = '1'; });
+      }
+      earlyMap.flyToBounds(earlyBounds, { duration: 1.4, easeLinearity: 0.22 });
+      showToast('全览模式 · 九程路线齐现');
+    }
+    function exitOverview() {
+      overviewMode = false;
+      const cur = ROUTES[routeIndex];
+      for (const r of ROUTES) {
+        if (r.id === cur.id) continue;
+        const ov = routeSvgOverlays[r.id];
+        const el = ov && ov.getElement && ov.getElement();
+        if (el) el.style.opacity = '0';
+      }
+      const el = routeSvgOverlays[cur.id] && routeSvgOverlays[cur.id].getElement();
+      if (el) {
+        el.querySelectorAll('text, circle').forEach(n => n.style.display = '');
+        el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = '');
+        requestAnimationFrame(() => { el.style.opacity = '1'; });
+      }
+      focusRouteView(cur.id);
+    }
+
     document.getElementById('btnCompass').addEventListener('click', () => {
-      map.setView([30.5, 110], 5);
+      if (!inEarlyChapter()) { gotoEarlyChapter(); return; }
+      if (overviewMode) exitOverview(); else focusRouteView(ROUTES[routeIndex].id);
     });
     document.getElementById('btnLocate').addEventListener('click', () => {
-      drawOverview();
-    });
-    document.getElementById('btnLayers').addEventListener('click', () => {
-      alert('图层切换功能预留\n未来接入：Cesium / Mapbox / OpenLayers');
+      if (!inEarlyChapter()) { gotoEarlyChapter(); return; }
+      if (overviewMode) exitOverview(); else enterOverview();
     });
 
     // ===== 启动 =====
