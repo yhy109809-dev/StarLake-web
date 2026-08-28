@@ -597,14 +597,14 @@
     }
 
     /* ==========================================
-       模块二：前期名山漫游路线图（contain 完整显示，竖版 1:1.414）
+       模块二：前期名山漫游路线图（cover 放大显示，背景与图片宣纸底色融合）
        ========================================== */
     .wechat-img-wrap {
       position: absolute; inset: 20px;
       z-index: 7; pointer-events: none;
       opacity: 0; visibility: hidden;
       transition: opacity 0.45s ease;
-      background: #faf6ec;
+      background: #ead9b4;
       border-radius: 8px;
       box-shadow: 0 6px 20px rgba(44, 24, 16, 0.10);
     }
@@ -613,7 +613,7 @@
     }
     .wechat-img-wrap img {
       width: 100%; height: 100%;
-      object-fit: contain; object-position: center;
+      object-fit: cover; object-position: center;
       display: block;
     }
 
