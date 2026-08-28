@@ -1771,12 +1771,12 @@
       const route = ROUTES[i];
       if (!route) return;
       overviewMode = false; // 切换程即退出全览模式
-      // 其他路线平滑淡出(保留挂载,透明度归零)
+      // 其他路线平滑淡出(保留挂载,透明度归零,并禁用鼠标事件防止拦截点击)
       for (const r of ROUTES) {
         if (r.id === route.id) continue;
         const ov = routeSvgOverlays[r.id];
         const el = ov && ov.getElement && ov.getElement();
-        if (el) el.style.opacity = '0';
+        if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
       }
       document.getElementById('routeStage').innerHTML =
         `${route.no} · ${route.name}<br><span class="stage-year">${route.year}</span>`;
@@ -1790,6 +1790,7 @@
         // 当前路线:恢复文字与交互
         el.querySelectorAll('text, circle').forEach(n => n.style.display = '');
         el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = '');
+        el.style.pointerEvents = 'auto';
         requestAnimationFrame(() => { el.style.opacity = '1'; });
         bindRouteInteractions(route);
         focusRouteView(route.id); // 视野自动跟随到当前路线
@@ -2109,9 +2110,10 @@
         const ov = routeSvgOverlays[r.id];
         ov.addTo(earlyMap);
         const el = ov.getElement();
-        // 全览:隐藏文字与点位,仅显示各自配色的路线
+        // 全览:隐藏文字与点位,仅显示各自配色的路线,且不拦截鼠标
         el.querySelectorAll('text, circle').forEach(n => n.style.display = 'none');
         el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = 'none');
+        el.style.pointerEvents = 'none';
         requestAnimationFrame(() => { el.style.opacity = '1'; });
       }
       earlyMap.flyToBounds(earlyBounds, { duration: 1.4, easeLinearity: 0.22 });
@@ -2130,6 +2132,7 @@
       if (el) {
         el.querySelectorAll('text, circle').forEach(n => n.style.display = '');
         el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = '');
+        el.style.pointerEvents = 'auto';
         requestAnimationFrame(() => { el.style.opacity = '1'; });
       }
       focusRouteView(cur.id);
