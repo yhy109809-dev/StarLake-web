@@ -597,13 +597,11 @@
     }
 
     /* ==========================================
-       模块二：微信名字图片（覆盖地图居中，竖版 1:1.414）
+       模块二：前期名山漫游地形图（整块铺满地图区，竖版 1:1.414）
        ========================================== */
     .wechat-img-wrap {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      position: absolute; inset: 20px;
       z-index: 7; pointer-events: none;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
       opacity: 0; visibility: hidden;
       transition: opacity 0.45s ease;
     }
@@ -611,29 +609,9 @@
       opacity: 1; visibility: visible;
     }
     .wechat-img-wrap img {
-      height: 60vh; width: auto; max-width: 42vw;
-      object-fit: contain;
-      border: 6px solid #fff;
-      outline: 1px solid var(--accent-gold);
-      border-radius: 8px;
-      background: #fdfbf6;
-      box-shadow:
-        0 18px 50px rgba(44, 24, 16, 0.30),
-        0 6px 18px rgba(44, 24, 16, 0.12),
-        inset 0 0 0 1px rgba(196, 169, 125, 0.35);
-    }
-    .wechat-img-wrap .wechat-plaque {
-      display: flex; align-items: center; gap: 12px;
-      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
-      font-size: 15px; letter-spacing: 6px; color: var(--ink-dark);
-      padding: 9px 26px;
-      background: linear-gradient(135deg, rgba(252, 246, 232, 0.94), rgba(245, 236, 220, 0.88));
-      border: 1px solid var(--accent-gold);
-      border-radius: 4px;
-      box-shadow: 0 4px 14px rgba(44, 24, 16, 0.12);
-    }
-    .wechat-img-wrap .wechat-plaque .plaque-deco {
-      color: var(--accent-gold); font-size: 12px; letter-spacing: 0;
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block;
     }
 
     /* ==========================================
@@ -871,10 +849,9 @@
       </div>
     </div>
 
-    <!-- ==================== 模块二：微信名字图片（覆盖地图居中展示） ==================== -->
+    <!-- ==================== 模块二：前期名山漫游地形图（铺满地图区） ==================== -->
     <div class="wechat-img-wrap" id="wechatImgWrap">
-      <img src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/wechat-name.png" alt="微信名字">
-      <div class="wechat-plaque"><span class="plaque-deco">❧</span> 微信名字 <span class="plaque-deco">❧</span></div>
+      <img src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/wechat-name.png" alt="前期名山漫游地形图">
     </div>
   </main>
 
@@ -1012,7 +989,7 @@
 
         // 切换地图视图
         clearRoutes();
-        // 微信名字图片默认隐藏（模块二显示时再开启）
+        // 地形图默认隐藏（模块二显示时再开启）
         wechatImgWrap.classList.remove('show');
 
         // ===== 第四章：文学与科学价值 =====
