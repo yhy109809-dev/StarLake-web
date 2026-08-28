@@ -1151,9 +1151,27 @@
     }
 
     // ===== 九程路线系统（依次显示 + 水墨风开关 + 点位交互） =====
+    // 第一程 SVG 直接内嵌（仅 2.4KB），避免资源文件缺失导致路线不显示
+    const QILU_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89">' +
+      '<style>.rt{fill:none;stroke:#e06a55;stroke-width:1.87px;stroke-linecap:square;stroke-linejoin:bevel}' +
+      '.pt{fill:#fff;stroke:#222;stroke-width:.5px;fill-rule:evenodd}.pt-hot{cursor:pointer}.hit{fill:transparent;stroke:none;cursor:pointer}</style>' +
+      '<g id="rt-qilu"><path class="rt" d="M471.01,512.14c-3.37.34-6.74.68-10.11,1.02-1.99-1.53-4.27-3.57-6.51-6.23-3.71-4.43-5.81-8.81-7.01-12,.9-1.8,2.05-4.71,2.13-8.35.04-1.93-.19-5.08-4.19-13.27-1.62-3.32-4.02-7.79-7.41-12.85-4.87-2.74-8.32-5.77-10.56-8.03-2.03-2.05-5.27-5.33-7.84-10.43-1.41-2.8-1.87-4.6-3.96-7.66-1.68-2.45-2.31-3.7-3.55-4.85-2.08,1.16-3.42,1.72-6.4,3.22-3.59,1.81-9.02,2.95-11.76,3.18,7.83-5.76,8.04-10.61,7.51-12.67-.69-2.63-3.93-2.73-10.58-8.93-3.11-2.9-4.22-4.56-4.92-6.25-1.25-2.99-1.19-5.8-.99-7.53-7.9-16.56-8.26-21.08-6.93-21.94,2.08-1.34,7.75,6.6,14.87,5.58,4.57-.66,7.74-4.72,9.65-7.91"/></g>' +
+      '<g id="pts-qilu">' +
+      '<path class="pt" data-name="江阴故里·启程" d="M473.31,512.41c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt" data-name="镇江渡江" d="M463.7,513.49c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53c.15-1.24,1.3-2.13,2.57-1.98s2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt" data-name="扬州" d="M449.68,495.19c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt" data-name="淮安" d="M440.21,460.72c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt" data-name="济宁" d="M396.73,436.51c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt pt-hot" id="pt-brief" data-name="曲阜孔庙" d="M403.62,423.35c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53c.15-1.24,1.3-2.13,2.57-1.98s2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt" data-name="济南" d="M386.93,400.85c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<path class="pt pt-hot" id="pt-detail" data-name="泰山·岱宗" d="M404.57,376.29c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
+      '<circle class="hit" data-type="brief" data-name="曲阜·孔庙" cx="402.34" cy="424.07" r="6"/>' +
+      '<circle class="hit" data-type="detail" data-name="泰山·岱宗" cx="403.29" cy="377.01" r="6"/>' +
+      '</g></svg>';
+
     const ROUTES = [
       {
-        id: 'qilu', file: 'assets/route-1608-qilu.svg',
+        id: 'qilu', file: 'assets/route-1608-qilu.svg', svgText: QILU_SVG,
         no: '第一程', name: '齐鲁行', year: '万历三十六年（1608）',
         points: [
           {
@@ -1187,15 +1205,18 @@
     const routeSvgOverlays = {}; // route.id -> L.svgOverlay（缓存，避免重复加载）
 
     function loadRouteOverlay(route) {
+      const make = (txt) => {
+        const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+        const el = document.importNode(doc.documentElement, true);
+        const overlay = L.svgOverlay(el, earlyBounds, { interactive: true });
+        routeSvgOverlays[route.id] = overlay;
+        return overlay;
+      };
+      // 优先使用内嵌 SVG，缺失时回退到外部文件
+      if (route.svgText) return Promise.resolve(make(route.svgText));
       return fetch(route.file)
-        .then(r => r.text())
-        .then(txt => {
-          const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
-          const el = document.importNode(doc.documentElement, true);
-          const overlay = L.svgOverlay(el, earlyBounds, { interactive: true });
-          routeSvgOverlays[route.id] = overlay;
-          return overlay;
-        });
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(make);
     }
 
     function bindRouteInteractions(route) {
@@ -1221,11 +1242,16 @@
       const route = ROUTES[i];
       Object.values(routeSvgOverlays).forEach(o => o.remove());
       if (!route) return;
-      if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
-      routeSvgOverlays[route.id].addTo(earlyMap);
-      bindRouteInteractions(route);
       document.getElementById('routeStage').innerHTML =
         `${route.no} · ${route.name}<br><span class="stage-year">${route.year}</span>`;
+      try {
+        if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
+        routeSvgOverlays[route.id].addTo(earlyMap);
+        bindRouteInteractions(route);
+      } catch (err) {
+        console.error('路线加载失败:', err);
+        showToast('路线加载失败，请刷新重试');
+      }
       closePointPanel();
     }
 
