@@ -961,6 +961,118 @@
       font-family: "KaiTi", "STKaiti", serif;
     }
 
+    /* ===== 模块三：动态游历叙事系统 ===== */
+    .rt-base-dim { opacity: 0.22; transition: opacity 1s ease; }
+    .rt-traveled {
+      stroke: #2c5f8a; stroke-width: 2px; fill: none;
+      stroke-linecap: round; stroke-linejoin: round;
+      filter: drop-shadow(0 0 2.5px rgba(80,140,200,0.5));
+    }
+    #xxk-bob { animation: xxkBob 0.85s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes xxkBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.1px); } }
+    #xxk-flip { transform-box: fill-box; transform-origin: center; }
+    .node-halo { transform-box: fill-box; transform-origin: center; animation: haloPulse 1.5s ease-out infinite; }
+    @keyframes haloPulse { 0% { transform: scale(0.5); opacity: 0.7; } 100% { transform: scale(2.4); opacity: 0; } }
+    .lt-node.reached .lt-dot { background: #c0392b; border-color: #9c2817; }
+    .lt-node.current .lt-dot { animation: ltBreath 1.6s ease-in-out infinite; }
+    @keyframes ltBreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.28); } }
+    .journey-start-btn {
+      position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
+      z-index: 20; cursor: pointer; border: none; outline: none;
+      display: flex; align-items: center; gap: 8px; padding: 11px 26px 11px 16px;
+      border-radius: 26px; font-family: "KaiTi","STKaiti",serif; font-size: 15px; letter-spacing: 4px;
+      color: #f0e6cc; border: 1px solid rgba(196,169,125,0.55);
+      background:
+        radial-gradient(ellipse 60% 100% at 50% 0%, rgba(255,255,255,0.14), transparent 70%),
+        linear-gradient(160deg, #3d2417 0%, #2c1810 55%, #1f0f08 100%);
+      box-shadow: 0 4px 16px rgba(44,24,16,0.35), inset 0 0 12px rgba(0,0,0,0.35);
+      transition: transform 0.3s var(--ease-soft), opacity 0.6s ease;
+    }
+    .journey-start-btn::before {
+      content: "行"; width: 26px; height: 26px; border-radius: 4px; flex: 0 0 26px;
+      background: linear-gradient(135deg,#c0392b,#9c2817); display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: bold; color: rgba(255,245,230,0.95); letter-spacing: 0;
+    }
+    .journey-start-btn:hover { transform: translate(-50%,-50%) translateY(-2px); }
+    .journey-start-btn.gone { opacity: 0; pointer-events: none; }
+    .journey-pause-btn {
+      position: absolute; top: 12px; right: 14px; z-index: 20; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 50%; display: none;
+      align-items: center; justify-content: center; font-size: 14px; color: var(--ink-mid);
+      background: rgba(255,255,255,0.78); border: 1px solid var(--accent-gold);
+      box-shadow: 0 2px 8px rgba(44,24,16,0.12); outline: none;
+      transition: transform 0.3s var(--ease-soft), background 0.3s ease;
+      font-family: "KaiTi","STKaiti",serif;
+    }
+    .journey-pause-btn.on { display: flex; }
+    .journey-pause-btn:hover { transform: scale(1.08); background: rgba(196,169,125,0.3); }
+    .story-card {
+      position: absolute; z-index: 30; width: 360px; max-width: min(420px, 88%);
+      max-height: 52%; display: flex; flex-direction: column;
+      background: linear-gradient(135deg, rgba(252,246,232,0.96) 0%, rgba(245,236,220,0.92) 100%);
+      backdrop-filter: blur(3px);
+      border: 1px solid var(--accent-gold); border-radius: 8px;
+      box-shadow: 0 10px 34px rgba(44,24,16,0.22), inset 0 0 0 1px rgba(196,169,125,0.3);
+      opacity: 0; transform: translateY(15px) scale(0.96); pointer-events: none;
+      transition: opacity 0.5s var(--ease-soft), transform 0.5s var(--ease-soft);
+    }
+    .story-card.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    .story-card .sc-head {
+      display: flex; align-items: center; gap: 8px; padding: 11px 14px 9px;
+      border-bottom: 1px solid rgba(196,169,125,0.4);
+    }
+    .story-card .sc-year {
+      font-size: 10px; color: #fff; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px;
+      background: linear-gradient(135deg,#c0392b,#9c2817); flex: 0 0 auto;
+    }
+    .story-card .sc-title {
+      font-family: "KaiTi","STKaiti",serif; font-size: 16px; font-weight: bold;
+      color: var(--ink-dark); letter-spacing: 2px; flex: 1;
+    }
+    .story-card .sc-body { flex: 1; overflow-y: auto; padding: 10px 14px 12px; }
+    .story-card .sc-row { margin: 0 0 8px; font-size: 12px; line-height: 1.9; color: var(--ink-mid); text-align: justify; }
+    .story-card .sc-row b {
+      display: inline-block; font-size: 10px; color: #9e2d3e; letter-spacing: 2px;
+      margin-right: 6px; font-weight: bold;
+    }
+    .story-card .sc-note {
+      background: rgba(196,169,125,0.12); border-left: 3px solid var(--accent-red);
+      border-radius: 4px; padding: 8px 10px;
+    }
+    .story-card .sc-audio {
+      display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+      border-top: 1px dashed rgba(196,169,125,0.5); font-size: 11px; color: var(--ink-light);
+      letter-spacing: 1px;
+    }
+    .sc-wave { display: inline-flex; gap: 2.5px; align-items: center; height: 14px; }
+    .sc-wave i { width: 3px; border-radius: 2px; background: #c0392b; opacity: 0.75;
+      animation: scWave 1s ease-in-out infinite; }
+    .sc-wave i:nth-child(1){ height: 6px; } .sc-wave i:nth-child(2){ height: 12px; animation-delay: .15s; }
+    .sc-wave i:nth-child(3){ height: 8px; animation-delay: .3s; } .sc-wave i:nth-child(4){ height: 13px; animation-delay: .45s; }
+    @keyframes scWave { 0%,100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
+    .sc-abtn {
+      cursor: pointer; border: 1px solid rgba(196,169,125,0.6); background: rgba(255,255,255,0.6);
+      color: var(--ink-mid); font-size: 10px; letter-spacing: 1px; padding: 2px 8px;
+      border-radius: 10px; font-family: "KaiTi","STKaiti",serif; outline: none;
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+    .sc-abtn:hover { background: rgba(196,169,125,0.3); transform: translateY(-1px); }
+    .story-card .sc-continue {
+      cursor: pointer; border: none; outline: none; margin: 0 14px 12px;
+      align-self: flex-start; display: flex; align-items: center; gap: 7px;
+      padding: 8px 18px; border-radius: 18px; font-family: "KaiTi","STKaiti",serif;
+      font-size: 13px; letter-spacing: 3px; color: #f0e6cc;
+      background: linear-gradient(160deg,#3d2417,#2c1810 60%,#1f0f08);
+      border: 1px solid rgba(196,169,125,0.55); box-shadow: 0 3px 10px rgba(44,24,16,0.3);
+      transition: transform 0.3s var(--ease-soft);
+    }
+    .story-card .sc-continue::before {
+      content: "续"; width: 20px; height: 20px; border-radius: 3px;
+      background: linear-gradient(135deg,#c0392b,#9c2817); display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: bold; color: rgba(255,245,230,0.95); letter-spacing: 0;
+    }
+    .story-card .sc-continue:hover { transform: translateY(-2px); }
+
     /* 响应式 */
     @media (max-width: 960px) {
       .value-panels { flex-direction: column; gap: 18px; width: 86vw; }
@@ -1089,6 +1201,25 @@
         </div>
       </div>
       <div class="late-timeline" id="lateTimeline"></div>
+      <button class="journey-start-btn" id="journeyStartBtn" title="开始旅程">开始旅程</button>
+      <button class="journey-pause-btn" id="journeyPauseBtn" title="暂停/继续">⏸</button>
+      <div class="story-card" id="storyCard">
+        <div class="sc-head"><span class="sc-year" id="scYear"></span><span class="sc-title" id="scTitle"></span></div>
+        <div class="sc-body">
+          <p class="sc-row"><b>这一程</b><span id="scSummary"></span></p>
+          <p class="sc-row"><b>沿途风景</b><span id="scScenery"></span></p>
+          <p class="sc-row"><b>旅途见闻</b><span id="scEvents"></span></p>
+          <p class="sc-row sc-note"><b>徐霞客笔记</b><span id="scNote"></span></p>
+        </div>
+        <div class="sc-audio">
+          <span class="sc-wave"><i></i><i></i><i></i><i></i></span><span>正在讲述</span>
+          <span style="flex:1"></span>
+          <button class="sc-abtn" id="scPause">暂停</button>
+          <button class="sc-abtn" id="scResume">继续</button>
+          <button class="sc-abtn" id="scReplay">重播</button>
+        </div>
+        <button class="sc-continue" id="scContinue">继续旅程</button>
+      </div>
     </div>
   </main>
 
@@ -2127,6 +2258,7 @@
         });
         tl.appendChild(b);
       });
+      initJourney();
     }
     function highlightLateDot(i, name) {
       const svg = document.querySelector('#lateSvgHolder svg');
@@ -2141,6 +2273,337 @@
         `<text x="${+cx + 8}" y="${+cy + 3.5}" font-size="11" fill="#9e2d3e" font-weight="bold" font-family="KaiTi,STKaiti,serif">${name}</text>`;
       svg.appendChild(g);
       lateEchoGroup = g;
+    }
+
+    // ===== 动态游历叙事引擎(journeyProgress 统一驱动:人物/路线/时间轴/节点/语音) =====
+    const LATE_STORIES = {
+      "江阴 · 启程": {
+        year: "1636", title: "江阴 · 启程", progressIdx: 0,
+        summary: "崇祯九年九月，年届五十的徐霞客自江阴放舟西行，与迎福寺僧人静闻结伴。亲友劝他安度晚年，他答：我以老布衣，孤筇双屦，从山川间求所未至。此行目标，直指西南边陲。",
+        scenery: "长江烟波 · 水乡秋色 · 孤舟帆影",
+        events: "同行的静闻和尚刺血抄成《法华经》，发愿供于云南鸡足山。这份执念与徐霞客的山河之志一拍即合——一个为经书，一个为地图，两人遂结伴万里。",
+        note: "大丈夫当朝碧海而暮苍梧。这次出发，他把后半生全部交给了远方。",
+        narration: "崇祯九年秋天，年届五十的徐霞客从江阴出发，与僧人静闻结伴西行。静闻刺血抄写成法华经，发愿送往云南鸡足山。一个为经书，一个为山河，两人就此踏上万里征途。徐霞客说：大丈夫当朝碧海而暮苍梧。"
+      },
+      "闽赣 · 转折": {
+        year: "1636", title: "闽赣 · 转折", progressIdx: 7,
+        summary: "入冬后路线自浙赣山地折向西南。徐霞客冒雨越仙霞岭，经江西铅山、弋阳一带，一路考察丹霞地貌与岩洞，日记里山水与里程并记，从不停笔。",
+        scenery: "仙霞古道 · 冬雨山林 · 丹霞岩穴",
+        events: "山路泥泞，脚夫屡屡加价刁难。他据理力争，又在日记里如实记下雇脚力的每一笔花费——连旅费账目都不漏记，这部游记堪称一本明代的旅行账本。",
+        note: "行路之难，不在山高水长，而在人心曲直——但他记人，也总留三分体恤。",
+        narration: "入冬之后，路线从浙赣山地折向西南。徐霞客冒雨翻越仙霞岭，一路考察丹霞与岩洞。山路泥泞，脚夫屡屡加价，他据理力争，又把每一笔旅费如实记进日记。行路之难不在山高水长，而在人心曲直。"
+      },
+      "湖南 · 衡州": {
+        year: "1637", title: "湖南 · 衡州", progressIdx: 12,
+        summary: "二月深夜，湘江舟宿遇盗。船被焚、行李财物被洗劫一空，静闻为护经书身受刀伤。徐霞客赤足跳入寒江才得脱身，只身入衡州城借资度困。",
+        scenery: "湘江夜雨 · 衡州灯火 · 南岳烟云",
+        events: "遭劫后友人劝他返乡，他答：吾荷一锸来，何处不可埋吾骨耶！在衡州筹得路资后，他游罢南岳衡山，执意继续西行。《楚游日记》里这场劫难，是全书最惊心的一页。",
+        note: "一场大盗，抢得走行李，抢不走方向。方向这种东西，长在人心里。",
+        narration: "崇祯十年二月，深夜的湘江之上突遇强盗。船被烧，行李被抢，静闻为护经书身受刀伤，徐霞客赤足跳入寒江才逃得性命。友人劝他返乡，他答：我荷一锸来，何处不可埋吾骨。在衡州筹得路资后，他继续西行。"
+      },
+      "广西 · 桂林": {
+        year: "1637", title: "广西 · 桂林", progressIdx: 15,
+        summary: "入广西，徐霞客以桂林为中心遍历诸峰岩洞。他对七星岩做了反复出入的测绘，先后探查十五个洞口，记录方位与结构，堪称中国最早的洞穴测绘报告。",
+        scenery: "漓江碧水 · 峰林如画 · 岩洞幽深",
+        events: "同行静闻和尚在南宁病逝，遗愿是葬骨鸡足山。徐霞客背负他的遗骨与刺血经书，继续万里西行——不敢以死故负君。带着朋友的遗愿走路，山河之间，这段友情比岩洞更深。",
+        note: "他带着朋友的遗愿走路。山河之间，一段友情比岩洞更深。",
+        narration: "进入广西，徐霞客以桂林为据点遍历峰林岩洞，对七星岩先后探查十五个洞口，写成最早的洞穴测绘报告。也是在广西，僧人静闻病逝。徐霞客背负他的遗骨与血经，继续西行，不敢因死亡而辜负朋友。"
+      },
+      "贵州 · 山行": {
+        year: "1638", title: "贵州 · 山行", progressIdx: 19,
+        summary: "入黔地，山愈密、路愈险。徐霞客经镇宁白水河，见黄果树大瀑布捣珠崩玉、飞沫反涌，是白水河上九级瀑布中最壮阔的一级。",
+        scenery: "黔中群山 · 白水飞瀑 · 藤萝古渡",
+        events: "他在日记里写下珠帘钩不卷，匹练挂遥峰——被后世引用数百年。他还细察水雾被横风吹散、又聚于潭面的景象，堪称最早的瀑布形态观察记录之一。",
+        note: "别人看瀑布看壮观，他看瀑布看构造——壮观是偶遇，构造才是目的。",
+        narration: "进入贵州，山愈密，路愈险。徐霞客在镇宁白水河见到了黄果树大瀑布，日记里写下：珠帘钩不卷，匹练挂遥峰。他还细察水雾被风吹散、又聚于潭面的景象。别人看瀑布看壮观，他看瀑布看构造。"
+      },
+      "云南 · 东境": {
+        year: "1638", title: "云南 · 东境", progressIdx: 22,
+        summary: "秋末入滇，《滇游日记》自此开篇。经曲靖、昆明一带，滇池浩渺、山原辽阔。他一路核对志书讹误，凡舆图所载与实地不符处，皆亲历而后断。",
+        scenery: "滇池烟波 · 高原秋色 · 古寺钟声",
+        events: "他发现《大明一统志》所记多处与实地相反，日记里直言纠错——地方志错了，他以脚步为据。以足迹订正经典，这正是徐霞客地理学的分量。",
+        note: "昔人星宿之源，此行始得其实。地理之学，在他这里是走出来的学问。",
+        narration: "崇祯十一年秋末，徐霞客进入云南，滇游日记自此开篇。经曲靖、昆明一带，滇池浩渺，山原辽阔。他发现大明一统志所记多处与实地不符，便在日记里直言纠错。地理之学，在他这里是走出来的学问。"
+      },
+      "滇西 · 大理": {
+        year: "1639", title: "滇西 · 大理", progressIdx: 29,
+        summary: "出大理北上宾川鸡足山。徐霞客将静闻和尚的遗骨安葬山中，血经供于悉檀寺——两年前的生死之约，至此圆满。应僧人之请，他又留山修撰《鸡足山志》。",
+        scenery: "苍山洱海 · 三塔倒影 · 鸡足云海",
+        events: "葬友之后，他登鸡足绝顶，观东日、西海、北雪、南云，四篇观景短文被誉为滇游日记的华彩段落。有人问静闻葬在哪里？就在他看过日出与云海的地方。",
+        note: "朋友把他带到了此行最壮阔的高处。约定这种事，他从不食言。",
+        narration: "崇祯十二年，徐霞客出大理北上鸡足山，将静闻和尚的遗骨安葬山中，血经供于悉檀寺。两年前的生死之约至此圆满。他又登上鸡足绝顶，观东日、西海、北雪、南云。朋友把他带到了此行最壮阔的高处。"
+      },
+      "腾冲 · 西极": {
+        year: "1639", title: "腾冲 · 西极", progressIdx: 33,
+        summary: "沿古道西出，翻越高黎贡山，抵达腾越州——这是徐霞客一生到过的最西端。他冒雾考察打鹰山火山遗迹，又下硫磺塘热海，见滚锅沸泉蒸腾如雾。",
+        scenery: "高黎贡山 · 火山浮石 · 热海沸泉",
+        events: "当地人说打鹰山三十年前一声巨响后草木不生。他拾起山上浮石验证：石质浮而不沉——并以实地见闻推断火山喷发之迹，成为中国最早的火山科学考察记录之一。",
+        note: "万里遐征至此走到尽头，也走到顶点。三年后病足归乡，游记的最后一页，留给了这片最远的山河。",
+        narration: "徐霞客翻越高黎贡山，抵达腾冲，这是他一生足迹的最西端。他考察打鹰山的火山遗迹，拾起浮石验证石质浮而不沉，又下到硫磺塘热海，见沸泉蒸腾如雾。他以实地见闻推断火山喷发之迹，成为中国火山考察的第一人。万里遐征，至此抵达顶点。"
+      },
+    };
+    const FINAL_STORY = {
+      year: "1636—1640", title: "万里遐征 · 山河终章",
+      summary: "四年万里，徐霞客自江阴出发，经浙、赣、湘、桂、黔、滇诸省，两度遇盗、三度绝粮，足迹远至腾冲边陲，写下《浙游》《楚游》《粤西游》《黔游》《滇游》等数十万字日记。",
+      scenery: "大江大湖 · 绝壁深洞 · 火山热海 · 边城孤月",
+      events: "1640年足疾复发，丽江土司木增派车夫将他送归江阴。次年正月，一代游圣病逝家中，年五十五。静闻的骨灰安于鸡足，游记的墨迹留于人间。",
+      note: "徐霞客的山河之旅，至此暂告一段落。",
+      narration: "四年万里，徐霞客历经两度遇盗、三次绝粮，足迹远至云南腾冲。一六四零年，他因足疾被送归江阴，次年病逝家中，年五十五岁。他留下的六十余万字游记，成为中国古代地理学的巅峰。徐霞客的山河之旅，至此暂告一段落。"
+    };
+    const XINAN_SPEED = 1 / 95; // 全程约95秒
+    const JOURNEY = {
+      progress: 0, started: false, playing: false, finished: false,
+      nodes: [], pathEl: null, total: 0, charEl: null, flipEl: null,
+      traveledEl: null, tlEls: [], atNode: null, litDot: null,
+      raf: null, lastT: 0, haloEl: null,
+    };
+    const NORMT = s => (s || '').replace(/\s/g, '');
+
+    function initJourney() {
+      if (JOURNEY.pathEl) return;
+      const svg = document.querySelector('#lateSvgHolder svg');
+      if (!svg) return;
+      const base = svg.querySelector('#rt-xinan');
+      if (!base) return;
+      JOURNEY.pathEl = base;
+      JOURNEY.total = base.getTotalLength();
+      base.classList.add('rt-base-dim');
+      // 走过路线的"绘制层"
+      const tr = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      tr.setAttribute('d', base.getAttribute('d'));
+      tr.setAttribute('class', 'rt-traveled');
+      tr.style.strokeDasharray = JOURNEY.total;
+      tr.style.strokeDashoffset = JOURNEY.total;
+      base.parentNode.insertBefore(tr, base.nextSibling);
+      JOURNEY.traveledEl = tr;
+      // 卡通徐霞客(Q版,约3%图宽)
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.id = 'xxk-root';
+      g.innerHTML = '<g id="xxk-bob"><g id="xxk-flip">' +
+        '<line x1="3.1" y1="-6.2" x2="4.6" y2="2" stroke="#7a5b3a" stroke-width="0.7"/>' +
+        '<rect x="-5.2" y="-8.6" width="3" height="4.6" rx="0.8" fill="#8a6a45"/>' +
+        '<path d="M-3,-8 L3,-8 L4.4,0 Q0,1.5 -4.4,0 Z" fill="#5a729a"/>' +
+        '<path d="M-3,-8 L3,-8 L3.5,-4.4 Q0,-3.4 -3.5,-4.4 Z" fill="#6b83aa"/>' +
+        '<rect x="-3.3" y="-5.4" width="6.6" height="1" fill="#9c2817" opacity="0.85"/>' +
+        '<circle cx="0" cy="-10.6" r="3.1" fill="#f6d7b8"/>' +
+        '<circle cx="-1.1" cy="-10.9" r="0.42" fill="#2c1810"/>' +
+        '<circle cx="1.1" cy="-10.9" r="0.42" fill="#2c1810"/>' +
+        '<path d="M-0.9,-9.7 Q0,-9 0.9,-9.7" stroke="#2c1810" stroke-width="0.35" fill="none"/>' +
+        '<ellipse cx="0" cy="-12.7" rx="5.8" ry="1.1" fill="#b98d4f"/>' +
+        '<path d="M-5.4,-12.6 Q0,-18 5.4,-12.6 Q0,-14.6 -5.4,-12.6 Z" fill="#c9a35e"/>' +
+        '<circle cx="3.1" cy="-5.9" r="1" fill="#f6d7b8"/>' +
+        '</g></g>';
+      svg.appendChild(g);
+      JOURNEY.charEl = g;
+      JOURNEY.flipEl = g.querySelector('#xxk-flip');
+      placeCharacter(0);
+      // 34 个白点就近映射到 Path 弧长 → progress
+      const SAMPLES = 800;
+      const pts = [];
+      for (let s = 0; s <= SAMPLES; s++) pts.push(base.getPointAtLength(JOURNEY.total * s / SAMPLES));
+      JOURNEY.nodes = LATE_NODES.map(nd => {
+        const c = svg.querySelector(`circle[data-i="${nd.i}"]`);
+        const cx = +c.getAttribute('cx'), cy = +c.getAttribute('cy');
+        let best = 0, bd = Infinity;
+        pts.forEach((p, k) => { const d = (p.x - cx) ** 2 + (p.y - cy) ** 2; if (d < bd) { bd = d; best = k; } });
+        const story = LATE_STORIES[nd.name] || {};
+        return Object.assign({}, nd, story, { progress: best / SAMPLES, triggered: false });
+      });
+      for (let k = 1; k < JOURNEY.nodes.length; k++) {
+        if (JOURNEY.nodes[k].progress <= JOURNEY.nodes[k - 1].progress + 0.0005)
+          JOURNEY.nodes[k].progress = JOURNEY.nodes[k - 1].progress + 0.0005;
+      }
+      JOURNEY.tlEls = Array.from(document.querySelectorAll('#lateTimeline .lt-node'));
+      updateTimeline();
+      // 控件
+      document.getElementById('journeyStartBtn').addEventListener('click', startJourney);
+      document.getElementById('journeyPauseBtn').addEventListener('click', toggleJourneyPause);
+      document.getElementById('scContinue').addEventListener('click', continueJourney);
+      document.getElementById('scPause').addEventListener('click', () => { try { speechSynthesis.pause(); } catch (e) {} });
+      document.getElementById('scResume').addEventListener('click', () => { try { speechSynthesis.resume(); } catch (e) {} });
+      document.getElementById('scReplay').addEventListener('click', () => { if (JOURNEY.atNode) speakNarration(JOURNEY.atNode.narration); });
+    }
+
+    function placeCharacter(progress) {
+      if (!JOURNEY.pathEl) return;
+      const p = JOURNEY.pathEl.getPointAtLength(JOURNEY.total * progress);
+      const p2 = JOURNEY.pathEl.getPointAtLength(Math.min(JOURNEY.total, JOURNEY.total * progress + 1.2));
+      JOURNEY.charEl.setAttribute('transform', `translate(${p.x.toFixed(2)},${p.y.toFixed(2)})`);
+      JOURNEY.flipEl.style.transform = (p2.x < p.x) ? 'scaleX(-1)' : 'scaleX(1)';
+    }
+
+    function updateTimeline() {
+      JOURNEY.nodes.forEach((nd, k) => {
+        const el = JOURNEY.tlEls[k];
+        if (!el) return;
+        const passed = nd.triggered || JOURNEY.progress >= nd.progress - 0.0002;
+        el.classList.toggle('reached', passed);
+        const isCurrent = JOURNEY.atNode ? JOURNEY.atNode === nd
+          : (!nd.triggered && JOURNEY.nodes.findIndex(x => !x.triggered) === k);
+        el.classList.toggle('current', !!isCurrent);
+      });
+    }
+
+    function applyProgress() {
+      placeCharacter(JOURNEY.progress);
+      JOURNEY.traveledEl.style.strokeDashoffset = JOURNEY.total * (1 - JOURNEY.progress);
+      updateTimeline();
+    }
+
+    function journeyTick(t) {
+      JOURNEY.raf = null;
+      if (!JOURNEY.playing) return;
+      const dt = Math.min(0.05, (t - JOURNEY.lastT) / 1000 || 0);
+      JOURNEY.lastT = t;
+      JOURNEY.progress = Math.min(1, JOURNEY.progress + XINAN_SPEED * dt);
+      applyProgress();
+      const nxt = JOURNEY.nodes.find(n => !n.triggered);
+      if (nxt && JOURNEY.progress >= nxt.progress) { triggerNode(nxt); return; }
+      if (JOURNEY.progress >= 1) { finishJourney(); return; }
+      JOURNEY.raf = requestAnimationFrame(journeyTick);
+    }
+    function resumeEngine() {
+      if (JOURNEY.raf === null && JOURNEY.playing && !JOURNEY.finished) {
+        JOURNEY.lastT = performance.now();
+        JOURNEY.raf = requestAnimationFrame(journeyTick);
+      }
+    }
+
+    function startJourney() {
+      if (JOURNEY.finished) return;
+      JOURNEY.started = true;
+      JOURNEY.playing = true;
+      document.getElementById('journeyStartBtn').classList.add('gone');
+      document.getElementById('journeyPauseBtn').classList.add('on');
+      document.getElementById('journeyPauseBtn').textContent = '⏸';
+      resumeEngine();
+    }
+    function toggleJourneyPause() {
+      if (JOURNEY.atNode) return; // 节点停留期由故事卡控制
+      const btn = document.getElementById('journeyPauseBtn');
+      if (JOURNEY.playing) {
+        JOURNEY.playing = false;
+        if (JOURNEY.raf) { cancelAnimationFrame(JOURNEY.raf); JOURNEY.raf = null; }
+        btn.textContent = '▶';
+      } else {
+        JOURNEY.playing = true;
+        btn.textContent = '⏸';
+        resumeEngine();
+      }
+    }
+    function triggerNode(nd) {
+      JOURNEY.playing = false;
+      JOURNEY.atNode = nd;
+      nd.triggered = true;
+      updateTimeline();
+      highlightLateDot(nd.i, nd.name);
+      // 节点光晕
+      const svg = document.querySelector('#lateSvgHolder svg');
+      if (svg) {
+        const c = svg.querySelector(`circle[data-i="${nd.i}"]`);
+        if (c) {
+          const h = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          h.setAttribute('cx', c.getAttribute('cx')); h.setAttribute('cy', c.getAttribute('cy'));
+          h.setAttribute('r', '8'); h.setAttribute('fill', 'rgba(192,57,43,0.35)');
+          h.setAttribute('class', 'node-halo');
+          svg.appendChild(h); JOURNEY.haloEl = h;
+        }
+      }
+      showStoryCard(nd);
+      speakNarration(nd.narration);
+    }
+    function continueJourney() {
+      if (JOURNEY.finished) return;
+      try { speechSynthesis.cancel(); } catch (e) {}
+      if (JOURNEY.haloEl) { JOURNEY.haloEl.remove(); JOURNEY.haloEl = null; }
+      hideStoryCard();
+      JOURNEY.atNode = null;
+      JOURNEY.playing = true;
+      resumeEngine();
+    }
+    function finishJourney() {
+      JOURNEY.finished = true;
+      JOURNEY.playing = false;
+      JOURNEY.progress = 1;
+      applyProgress();
+      const btn = document.getElementById('journeyPauseBtn');
+      btn.classList.remove('on');
+      showStoryCard(Object.assign({}, FINAL_STORY, { isFinal: true }));
+      speakNarration(FINAL_STORY.narration);
+    }
+    function restartJourney() {
+      JOURNEY.progress = 0; JOURNEY.finished = false; JOURNEY.started = false;
+      JOURNEY.atNode = null;
+      JOURNEY.nodes.forEach(n => { n.triggered = false; });
+      try { speechSynthesis.cancel(); } catch (e) {}
+      if (JOURNEY.haloEl) { JOURNEY.haloEl.remove(); JOURNEY.haloEl = null; }
+      hideStoryCard();
+      JOURNEY.traveledEl.style.strokeDashoffset = JOURNEY.total;
+      placeCharacter(0);
+      updateTimeline();
+      document.getElementById('journeyStartBtn').classList.remove('gone');
+      const btn = document.getElementById('journeyPauseBtn'); btn.classList.remove('on');
+    }
+
+    // ===== 故事卡片 =====
+    function showStoryCard(nd) {
+      const card = document.getElementById('storyCard');
+      document.getElementById('scYear').textContent = nd.year;
+      document.getElementById('scTitle').textContent = nd.title;
+      document.getElementById('scSummary').textContent = nd.summary;
+      document.getElementById('scScenery').textContent = nd.scenery;
+      document.getElementById('scEvents').textContent = nd.events;
+      document.getElementById('scNote').textContent = nd.note;
+      const cont = document.getElementById('scContinue');
+      cont.textContent = nd.isFinal ? '重新游历' : '继续旅程';
+      cont.onclick = nd.isFinal ? restartJourney : continueJourney;
+      // 位置:跟随人物,左右避让,上下防出界
+      const stage = document.querySelector('.late-stage');
+      const holder = document.querySelector('.late-map-holder');
+      const svg = document.querySelector('#lateSvgHolder svg');
+      const vb = svg.viewBox.baseVal;
+      const hr = holder.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      const p = JOURNEY.pathEl.getPointAtLength(JOURNEY.total * Math.min(1, JOURNEY.progress));
+      const px = hr.left - sr.left + (p.x - vb.x) / vb.width * hr.width;
+      const py = hr.top - sr.top + (p.y - vb.y) / vb.height * hr.height;
+      const cardW = Math.min(380, sr.width * 0.6), cardH = Math.min(340, sr.height * 0.8);
+      card.style.width = cardW + 'px';
+      let left = (px < sr.width / 2) ? px + 46 : px - 46 - cardW;
+      left = Math.max(8, Math.min(left, sr.width - cardW - 8));
+      let top = (py < sr.height / 2) ? py + 34 : py - cardH - 34;
+      top = Math.max(8, Math.min(top, sr.height - cardH - 8));
+      card.style.left = left + 'px';
+      card.style.top = top + 'px';
+      card.classList.add('show');
+    }
+    function hideStoryCard() {
+      document.getElementById('storyCard').classList.remove('show');
+    }
+
+    // ===== Web Speech API(中文男声优先,任何环境不报错) =====
+    let lateVoicesBound = false;
+    function speakNarration(text) {
+      if (!('speechSynthesis' in window)) return;
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-CN'; u.rate = 0.95; u.pitch = 0.9;
+        const pick = () => {
+          const vs = speechSynthesis.getVoices();
+          const zh = vs.filter(v => /^zh/i.test(v.lang || ''));
+          const male = zh.find(v => /male|男|Yun|Kang|Liang|Tao/i.test(v.name)) ||
+                       zh.find(v => v.lang.replace('_', '-').toLowerCase() === 'zh-cn');
+          if (male) u.voice = male; else if (zh.length) u.voice = zh[0];
+          speechSynthesis.speak(u);
+        };
+        if (speechSynthesis.getVoices().length) pick();
+        else { if (!lateVoicesBound) { speechSynthesis.addEventListener('voiceschanged', () => {}, { once: true }); lateVoicesBound = true; } pick(); }
+      } catch (e) { /* 语音不可用时静默降级 */ }
+    }
+    function pauseJourneyAll() {
+      try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+      if (JOURNEY.raf) { cancelAnimationFrame(JOURNEY.raf); JOURNEY.raf = null; }
+      JOURNEY.playing = false;
     }
 
     // ===== 模块三结束标记 =====
@@ -2180,6 +2643,7 @@
         wechatImgWrap.classList.remove('show');
         closePointPanel();
         document.body.classList.remove('chapter-late'); // 离开模块三时复位布局
+        pauseJourneyAll();
         // 离开模块二时停用查看器滚轮缩放，避免滚动事件残留
         if (earlyMap) { earlyMap.scrollWheelZoom.disable(); }
 
