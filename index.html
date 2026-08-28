@@ -909,6 +909,58 @@
     /* 第四章：隐藏右侧信息栏 */
     .info-panel.value-hidden { display: none; }
 
+
+    /* ===== 模块三：后期万里遐征（合并展示区 + 时间轴） ===== */
+    body.chapter-late .info-panel { display: none; }
+    body.chapter-late .map-area { width: calc(100vw - var(--sidebar-w)); }
+    body.chapter-late .scroll-frame,
+    body.chapter-late .bottom-scape,
+    body.chapter-late .map-controls { display: none; }
+    .late-wrap {
+      position: absolute; inset: 0; z-index: 6; display: none;
+      background: linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
+    }
+    body.chapter-late .late-wrap { display: block; }
+    .late-title {
+      position: absolute; top: 14px; left: 18px; z-index: 5;
+      font-family: "KaiTi", "STKaiti", serif; font-size: 15px; font-weight: bold;
+      color: var(--ink-mid); letter-spacing: 3px;
+    }
+    .late-stage {
+      position: absolute; left: 0; right: 0; top: 0; bottom: 118px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .late-map-holder { position: relative; width: 100%; height: 100%; }
+    .late-map-holder img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .late-route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .late-timeline {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 118px;
+      background: linear-gradient(180deg, rgba(247,241,227,0.55), rgba(239,224,204,0.95));
+      border-top: 1px solid rgba(196,169,125,0.5);
+    }
+    .late-timeline .lt-line {
+      position: absolute; left: 4%; right: 4%; top: 54px; height: 2px;
+      background: linear-gradient(90deg, transparent, #c4a97d 8%, #c4a97d 92%, transparent);
+    }
+    .lt-node { position: absolute; top: 0; bottom: 0; width: 70px; margin-left: -35px;
+      background: none; border: none; cursor: pointer; padding: 0; outline: none; }
+    .lt-node .lt-dot {
+      position: absolute; left: 50%; top: 47px; width: 14px; height: 14px; margin-left: -7px;
+      border-radius: 50%; background: #f7f1e3; border: 2px solid #c0392b;
+      box-shadow: 0 0 6px rgba(192,57,43,0.35);
+      transition: transform 0.3s var(--ease-soft), background 0.3s var(--ease-soft);
+    }
+    .lt-node:hover .lt-dot, .lt-node.active .lt-dot { transform: scale(1.3); background: #c0392b; }
+    .lt-node .lt-year {
+      position: absolute; left: 50%; transform: translateX(-50%); top: 16px;
+      font-size: 11px; color: var(--ink-light); letter-spacing: 1px;
+    }
+    .lt-node .lt-name {
+      position: absolute; left: 50%; transform: translateX(-50%); top: 74px;
+      font-size: 12px; color: var(--ink-mid); letter-spacing: 1px; white-space: nowrap;
+      font-family: "KaiTi", "STKaiti", serif;
+    }
+
     /* 响应式 */
     @media (max-width: 960px) {
       .value-panels { flex-direction: column; gap: 18px; width: 86vw; }
@@ -1025,6 +1077,18 @@
       <button class="route-next-btn" id="btnNextRoute">下一程</button>
       <div class="route-toast" id="routeToast"></div>
       <div class="point-panel" id="pointPanel"></div>
+    </div>
+
+    <!-- ==================== 模块三：后期万里遐征（合并展示区 + 时间轴） ==================== -->
+    <div class="late-wrap" id="lateWrap">
+      <div class="late-title">后期万里遐征 · 1636—1640</div>
+      <div class="late-stage">
+        <div class="late-map-holder">
+          <img src="assets/late-map.png" alt="后期万里遐征路线图">
+          <div id="lateSvgHolder"></div>
+        </div>
+      </div>
+      <div class="late-timeline" id="lateTimeline"></div>
     </div>
   </main>
 
@@ -1403,6 +1467,46 @@
       '<text class="lbl" text-anchor="start" x="299.92" y="281.54">浑源</text>' +
       '<text class="lbl lbl-hot" text-anchor="start" x="306.73" y="262.85">恒山·悬空寺</text>' +
       '</g>' +
+      '</svg>';
+
+    const LATE_SVG =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89">' +
+      '<style>.rt{fill:none;stroke:#2c5f8a;stroke-width:1.6px;stroke-linecap:square;stroke-linejoin:bevel}.pt{fill:#fff;stroke:#2c1810;stroke-width:.4px}</style>' +
+      '<path id="rt-xinan" class="rt" d="M538.85,357.56c.86.79,1.98,2.06,2.63,3.86.78,2.17.15,3.08.98,5.11.98,2.4,2.34,2.3,3.21,4.28,1.22,2.76-.14,5.86-.74,7.23-2.03,4.64-4.79,3.96-6.94,8.28-1.92,3.87-.17,5.34-2.45,8.55-1.52,2.13-3.59,3.27-5.92,4.6-2.34,1.33-4.53,2.11-6.22,2.57-.79,1.43-2.01,3.44-3.72,5.67-1.49,1.93-2.81,3.29-5.45,6-2.29,2.35-3.44,3.53-5.21,5.04-2.09,1.78-3.96,3.09-5.31,3.96-2.12,1.22-4.66,2.5-7.6,3.66-2.53,1-4.91,1.73-7.04,2.26-2.95,1.66-5.53,2.87-7.49,3.72-4.21,1.82-5.88,2.12-7.47,2.11-1.83-.02-3.31-.44-4.27-.8-1.23.05-3.97.34-6.76,2.15-2.32,1.5-3.6,3.36-4.2,4.39-.99,1.93-2.07,3.25-2.87,4.08-1.72,1.81-2.94,2.28-3.97,4.02-.85,1.43-1.07,2.86-1.12,3.8-.57-.42-2.63-1.83-5.52-1.65-2.63.17-4.35,1.56-4.88,2.01-1.4,1.17-1.55,2.07-2.58,3.51-2.12,2.94-5.16,4.24-6.6,4.84-3.06,1.3-5.59,1.24-9.82,1.15-2.31-.05-5.57-.29-9.45-1.17-.62-.77-2.17-2.47-4.57-2.83-.95-.14-2.65-.16-6.07,1.92-3.87,2.36-5.1,4.46-6.84,5.84-2.36,1.88-6.8,3.34-15.91.82-1.61-1.81-3.69-3.83-6.29-5.78-4.84-3.62-9.6-5.58-13.07-6.68-.75.96-1.97,2.8-2.42,5.39-.25,1.42-.19,2.66-.07,3.58-3.45,3.26-8.32,7.13-14.77,10.4-3.22,1.63-6.28,2.84-9.04,3.73-1.71.24-3.97.72-6.46,1.77-2.79,1.17-4.89,2.63-6.3,3.78-3.66,1.58-5.8,3.55-7.05,4.99-3.26,3.74-3.47,7.33-6.99,9.06-1.79.88-3.58.87-4.7.77l.24-.22c0,1.53.17,3.82,1.1,6.42.81,2.26,1.91,3.96,2.77,5.1-1.43.75-3.6,1.94-6.16,3.54-4.04,2.53-5.04,3.58-6.93,4.52-2.37,1.18-6.15,2.21-12.11,1.02-6.61,1.84-9.29,4.75-10.53,7.04-4.47,8.22,3.75,19.34-1.06,23.39-.88.73-2.46,1.09-5.62,1.79-3.56.8-6.58.91-8.63.88-6.01-4.71-11.28-7.93-15.04-10.01-5.83-3.24-9.48-4.56-15.02-8.44-4.22-2.96-7.33-5.85-9.3-7.84-4.54-4.26-8.23-7.66-10.68-9.9-7.6-6.96-11.3-10.17-10.47-13.07.61-2.12,3.02-1.89,4.11-4.79.89-2.37-.5-3.13-.69-7.94-.16-4.03.76-4.93.06-7.91-.5-2.1-1.44-3.7-2.15-4.72-1.2,1.3-3.11,2.92-5.55,3-1.75.06-2.71-.7-3.85-.95-2.1-.47-5.52.65-11.23,8.14-.15-.47-.47-1.22-1.11-1.96-.8-.93-1.71-1.38-2.2-1.59-4.27-1.47-6.88-.94-8.49-.16-1.79.87-2.28,2.04-4.22,2.84-2.55,1.06-5.23.48-7.11-.17-.02,1.19-.11,2.89-.38,4.91-.5,3.72-.76,5.68-1.82,7.24-2.41,3.54-7.98,3.67-9.63,3.66-1.03.83-2.53,1.77-3.96,1.39-1.7-.46-1.99-2.47-3.79-4.47-1.05-1.17-2.85-2.6-6.1-3.45-.16,1.42-.23,3.59.4,6.12.73,2.94,2.07,5.07,2.98,6.29.19.7.61,2.63-.2,4.87-.87,2.4-2.62,3.66-3.22,4.05-.79,7.43-3.88,13.17-8.17,14.18-4.3,1-8.45-3.06-13.97-8.45-4.06-3.96-7.89-9.19-15.56-19.65-3.15-4.3-4.34-6.04-7.02-7.94-4.15-2.94-7.15-2.91-9.6-5.9-2.29-2.79-2.53-6.29-2.42-8.64.67-.43,1.6-1.16,2.39-2.3,1.63-2.35,1.52-4.84,1.45-5.69-2.07.49-4.98,1.5-7.49,3.89-.98.94-1.33,1.54-1.98,2.25-1.58,1.73-4.56,3.66-10.69,4.07-.53,1.64-1.49,3.6-3.29,4.23-1.74.61-3.21-.41-6.01-1.08-1.81-.43-4.4-.76-7.75-.29-.08,1.27-.42,2.23-.7,2.83-.45.97-.86,1.88-1.71,2.13-.84.25-1.29-.39-2.38-.4-1.11-.01-2.03.64-2.66,1.23"/>' +
+      '<circle class="pt" data-i="0" cx="539.23" cy="358.35" r="2.6"/>' +
+      '<circle class="pt" data-i="1" cx="546.04" cy="371.61" r="2.6"/>' +
+      '<circle class="pt" data-i="2" cx="535.92" cy="395.66" r="2.6"/>' +
+      '<circle class="pt" data-i="3" cx="523.77" cy="402.83" r="2.6"/>' +
+      '<circle class="pt" data-i="4" cx="504.07" cy="423.50" r="2.6"/>' +
+      '<circle class="pt" data-i="5" cx="489.44" cy="429.42" r="2.6"/>' +
+      '<circle class="pt" data-i="6" cx="470.21" cy="434.46" r="2.6"/>' +
+      '<circle class="pt" data-i="7" cx="459.25" cy="440.99" r="2.6"/>' +
+      '<circle class="pt" data-i="8" cx="451.30" cy="452.89" r="2.6"/>' +
+      '<circle class="pt" data-i="9" cx="412.44" cy="461.58" r="2.6"/>' +
+      '<circle class="pt" data-i="10" cx="379.05" cy="467.33" r="2.6"/>' +
+      '<circle class="pt" data-i="11" cx="359.68" cy="454.88" r="2.6"/>' +
+      '<circle class="pt" data-i="12" cx="357.19" cy="463.84" r="2.6"/>' +
+      '<circle class="pt" data-i="13" cx="333.38" cy="477.97" r="2.6"/>' +
+      '<circle class="pt" data-i="14" cx="320.61" cy="483.53" r="2.6"/>' +
+      '<circle class="pt" data-i="15" cx="301.87" cy="498.34" r="2.6"/>' +
+      '<circle class="pt" data-i="16" cx="302.11" cy="498.12" r="2.6"/>' +
+      '<circle class="pt" data-i="17" cx="305.99" cy="509.65" r="2.6"/>' +
+      '<circle class="pt" data-i="18" cx="280.79" cy="518.72" r="2.6"/>' +
+      '<circle class="pt" data-i="19" cx="254.96" cy="551.83" r="2.6"/>' +
+      '<circle class="pt" data-i="20" cx="215.60" cy="525.53" r="2.6"/>' +
+      '<circle class="pt" data-i="21" cx="195.77" cy="477.19" r="2.6"/>' +
+      '<circle class="pt" data-i="22" cx="175.15" cy="487.38" r="2.6"/>' +
+      '<circle class="pt" data-i="23" cx="171.83" cy="483.83" r="2.6"/>' +
+      '<circle class="pt" data-i="24" cx="152.02" cy="486.33" r="2.6"/>' +
+      '<circle class="pt" data-i="25" cx="140.18" cy="502.14" r="2.6"/>' +
+      '<circle class="pt" data-i="26" cx="126.35" cy="495.61" r="2.6"/>' +
+      '<circle class="pt" data-i="27" cx="129.72" cy="508.03" r="2.6"/>' +
+      '<circle class="pt" data-i="28" cx="126.31" cy="516.95" r="2.6"/>' +
+      '<circle class="pt" data-i="29" cx="69.56" cy="480.56" r="2.6"/>' +
+      '<circle class="pt" data-i="30" cx="73.40" cy="472.56" r="2.6"/>' +
+      '<circle class="pt" data-i="31" cx="53.24" cy="482.77" r="2.6"/>' +
+      '<circle class="pt" data-i="32" cx="36.19" cy="485.63" r="2.6"/>' +
+      '<circle class="pt" data-i="33" cx="28.75" cy="491.43" r="2.6"/>' +
       '</svg>';
 
     const ROUTES = [
@@ -1986,6 +2090,60 @@
       showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
     }
 
+    // ===== 模块三：后期万里遐征(合并展示 + 时间轴) =====
+    const LATE_NODES = [
+      { i: 0,  name: '江阴 · 启程', year: '1636' },
+      { i: 7,  name: '闽赣 · 转折', year: '1636' },
+      { i: 12, name: '湖南 · 衡州', year: '1637' },
+      { i: 15, name: '广西 · 桂林', year: '1637' },
+      { i: 19, name: '贵州 · 山行', year: '1638' },
+      { i: 22, name: '云南 · 东境', year: '1638' },
+      { i: 29, name: '滇西 · 大理', year: '1639' },
+      { i: 33, name: '腾冲 · 西极', year: '1639' },
+    ];
+    let lateMounted = false;
+    let lateEchoGroup = null;
+
+    function mountLateMap() {
+      if (lateMounted) return;
+      lateMounted = true;
+      const holder = document.getElementById('lateSvgHolder');
+      const doc = new DOMParser().parseFromString(LATE_SVG, 'image/svg+xml');
+      const el = document.importNode(doc.documentElement, true);
+      el.classList.add('late-route-svg');
+      holder.appendChild(el);
+      const tl = document.getElementById('lateTimeline');
+      tl.innerHTML = '<div class="lt-line"></div>';
+      const n = LATE_NODES.length;
+      LATE_NODES.forEach((nd, idx) => {
+        const b = document.createElement('button');
+        b.className = 'lt-node';
+        b.style.left = ((idx + 0.5) / n * 100) + '%';
+        b.innerHTML = `<span class="lt-year">${nd.year}</span><span class="lt-dot"></span><span class="lt-name">${nd.name}</span>`;
+        b.addEventListener('click', () => {
+          tl.querySelectorAll('.lt-node').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          highlightLateDot(nd.i, nd.name);
+        });
+        tl.appendChild(b);
+      });
+    }
+    function highlightLateDot(i, name) {
+      const svg = document.querySelector('#lateSvgHolder svg');
+      if (!svg) return;
+      if (lateEchoGroup) lateEchoGroup.remove();
+      const dot = svg.querySelector(`circle[data-i="${i}"]`);
+      if (!dot) return;
+      const cx = dot.getAttribute('cx'), cy = dot.getAttribute('cy');
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.innerHTML = `<circle cx="${cx}" cy="${cy}" r="7" fill="rgba(192,57,43,0.25)"/>` +
+        `<circle cx="${cx}" cy="${cy}" r="3.6" fill="#c0392b"/>` +
+        `<text x="${+cx + 8}" y="${+cy + 3.5}" font-size="11" fill="#9e2d3e" font-weight="bold" font-family="KaiTi,STKaiti,serif">${name}</text>`;
+      svg.appendChild(g);
+      lateEchoGroup = g;
+    }
+
+    // ===== 模块三结束标记 =====
     function initRouteSystem() {
       showRoute(routeIndex);
       document.getElementById('btnNextRoute').addEventListener('click', () => {
@@ -2021,6 +2179,7 @@
         // 路线图查看器默认隐藏（模块二显示时再开启）
         wechatImgWrap.classList.remove('show');
         closePointPanel();
+        document.body.classList.remove('chapter-late'); // 离开模块三时复位布局
         // 离开模块二时停用查看器滚轮缩放，避免滚动事件残留
         if (earlyMap) { earlyMap.scrollWheelZoom.disable(); }
 
@@ -2074,24 +2233,8 @@
             }, 60);
             break;
           case 'late':
-            // 聚焦后期路线
-            const latePts = fullRoute.slice(5);
-            const ll = L.polyline(latePts, {
-              color: '#2c5f8a', weight: 3.5, opacity: 0.7,
-              dashArray: '8 5', lineCap: 'round',
-            }).addTo(map);
-            routeLines.push(ll);
-            lateCities.forEach(c => {
-              const icon = L.divIcon({
-                className: '',
-                html: `<div class="xk-marker xk-marker--blue" style="width:12px;height:12px;background:#2c5f8a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(44,95,138,0.5);"></div>`,
-                iconSize: [12, 12], iconAnchor: [6, 6], popupAnchor: [0, -6],
-              });
-              const mk = L.marker([c.lat, c.lng], { icon }).addTo(markersGroup);
-              mk.bindPopup(`<div class="custom-popup"><h4>${c.name}</h4></div>`);
-            });
-            markersGroup.addTo(map);
-            map.fitBounds([[22, 98], [31, 122]], { padding: [40, 40] });
+            document.body.classList.add('chapter-late');
+            mountLateMap();
             break;
         }
       });
