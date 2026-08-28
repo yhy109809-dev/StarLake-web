@@ -5,12 +5,13 @@
     <path class="pt" data-name="九江·渡江" d="M473.31,512.41c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt pt-hot" id="pt-brief" data-name="东林寺" d="M449.91,500.92c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <circle class="hit" data-type="brief" data-name="东林寺" cx="448.63" cy="501.64" r="6"/>
-    <path class="pt" data-name="庐山·锦绣谷" d="M429.15,503.24c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-brief" data-name="庐山·锦绣谷" d="M429.15,503.24c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="brief" data-name="庐山·锦绣谷" cx="427.87" cy="503.96" r="6"/>
     <path class="pt pt-hot" id="pt-detail" data-name="三叠泉" d="M336.85,566.94c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <circle class="hit" data-type="detail" data-name="三叠泉" cx="335.57" cy="567.66" r="6"/>
     <text class="lbl" text-anchor="start" x="476.53" y="515.93">九江·渡江</text>
-    <text class="lbl lbl-hot" text-anchor="start" x="453.13" y="504.44">东林寺</text>
-    <text class="lbl" text-anchor="start" x="432.37" y="506.76">庐山·锦绣谷</text>
+    <text class="lbl lbl-hot" text-anchor="end" x="444.13" y="504.44">东林寺</text>
+    <text class="lbl lbl-hot" text-anchor="middle" x="427.87" y="518.00">庐山·锦绣谷</text>
     <text class="lbl lbl-hot" text-anchor="start" x="340.07" y="570.46">三叠泉</text>
   </g>
 </svg>

@@ -7,26 +7,28 @@
     <path class="pt" data-name="荥阳" d="M441.71,457.92c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt pt-hot" id="pt-brief" data-name="嵩山·少林寺" d="M388.53,432.15c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <circle class="hit" data-type="brief" data-name="嵩山·少林寺" cx="387.25" cy="432.87" r="6"/>
-    <path class="pt" data-name="洛阳·龙门" d="M304.19,404.94c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-brief" data-name="洛阳·龙门" d="M304.19,404.94c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="brief" data-name="洛阳·龙门" cx="302.91" cy="405.66" r="6"/>
     <path class="pt" data-name="新安" d="M264.09,410.35c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt" data-name="陕州" d="M247.4,404.16c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt" data-name="潼关" d="M175.49,399.48c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt pt-hot" id="pt-detail" data-name="华山·苍龙岭" d="M176.22,411.27c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <circle class="hit" data-type="detail" data-name="华山·苍龙岭" cx="174.94" cy="411.99" r="6"/>
     <path class="pt" data-name="华阴·玉泉院" d="M165.29,419.15c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
-    <path class="pt" data-name="武当山·金顶" d="M206.08,456.25c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-brief" data-name="武当山·金顶" d="M206.08,456.25c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="brief" data-name="武当山·金顶" cx="204.80" cy="456.97" r="6"/>
     <path class="pt" data-name="襄阳·归程" d="M195.85,464.62c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <text class="lbl" text-anchor="start" x="476.53" y="515.93">徐州·启程</text>
     <text class="lbl" text-anchor="start" x="452.90" y="498.71">开封府</text>
     <text class="lbl" text-anchor="start" x="444.93" y="461.44">荥阳</text>
     <text class="lbl lbl-hot" text-anchor="start" x="391.75" y="435.67">嵩山·少林寺</text>
-    <text class="lbl" text-anchor="start" x="307.41" y="408.46">洛阳·龙门</text>
+    <text class="lbl lbl-hot" text-anchor="start" x="307.41" y="408.46">洛阳·龙门</text>
     <text class="lbl" text-anchor="start" x="267.31" y="413.87">新安</text>
     <text class="lbl" text-anchor="start" x="250.62" y="407.68">陕州</text>
     <text class="lbl" text-anchor="start" x="178.71" y="403.00">潼关</text>
     <text class="lbl lbl-hot" text-anchor="start" x="179.44" y="414.79">华山·苍龙岭</text>
     <text class="lbl" text-anchor="start" x="168.51" y="422.67">华阴·玉泉院</text>
-    <text class="lbl" text-anchor="start" x="209.30" y="459.77">武当山·金顶</text>
+    <text class="lbl lbl-hot" text-anchor="start" x="209.30" y="459.77">武当山·金顶</text>
     <text class="lbl" text-anchor="start" x="199.07" y="468.14">襄阳·归程</text>
   </g>
 </svg>

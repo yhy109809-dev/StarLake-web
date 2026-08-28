@@ -9,14 +9,15 @@
     <path class="pt" data-name="齐云山" d="M413.89,575.92c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <path class="pt pt-hot" id="pt-brief" data-name="武夷·九曲溪" d="M399.44,567.45c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <circle class="hit" data-type="brief" data-name="武夷·九曲溪" cx="398.16" cy="568.17" r="6"/>
-    <path class="pt" data-name="武夷·天游峰" d="M403.83,556.56c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-brief" data-name="武夷·天游峰" d="M403.83,556.56c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="brief" data-name="武夷·天游峰" cx="402.55" cy="557.28" r="6"/>
     <path class="pt" data-name="崇安·归程" d="M391.53,633.72c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
     <text class="lbl" text-anchor="start" x="476.53" y="515.93">徽州府</text>
     <text class="lbl" text-anchor="start" x="467.73" y="562.10">黄山·汤口</text>
     <text class="lbl lbl-hot" text-anchor="start" x="433.75" y="592.16">黄山·天都峰</text>
     <text class="lbl" text-anchor="start" x="417.11" y="579.44">齐云山</text>
     <text class="lbl lbl-hot" text-anchor="start" x="402.66" y="570.97">武夷·九曲溪</text>
-    <text class="lbl" text-anchor="start" x="407.05" y="560.08">武夷·天游峰</text>
+    <text class="lbl lbl-hot" text-anchor="start" x="407.05" y="560.08">武夷·天游峰</text>
     <text class="lbl" text-anchor="start" x="394.75" y="637.24">崇安·归程</text>
   </g>
 </svg>
