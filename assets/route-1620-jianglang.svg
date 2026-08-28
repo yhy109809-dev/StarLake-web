@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89">
+  <style>.rt{fill:none;stroke:#e06a55;stroke-width:1.87px;stroke-linecap:square;stroke-linejoin:bevel}.pt{fill:#fff;stroke:#222;stroke-width:.5px;fill-rule:evenodd}.pt-hot{cursor:pointer}.hit{fill:transparent;stroke:none;cursor:pointer}.lbl{font-family:"KaiTi","STKaiti","Noto Serif SC",serif;font-size:7.5px;fill:#5c3d2e;paint-order:stroke;stroke:#f4ecd8;stroke-width:1.6px;stroke-linejoin:round}.lbl-hot{fill:#9e2d3e;font-weight:bold}</style>
+  <g id="rt-jianglang"><path class="rt" d="M471.01,512.14c1.63,1.59,3.58,4.06,3.8,7.21.17,2.42-.78,3.9-1.37,5.6-2.19,6.35,2.25,11.21,2.8,16.4.47,4.42-1.72,10.78-13.16,19.35-1.06,4.8-3.1,7.59-4.8,9.26-3.05,2.99-5.17,2.54-8.26,5.88-3.46,3.75-2.53,6.2-5.11,7.63-3.62,2-7.64-1.66-12.18-2.26-4.91-.65-12.11,2.04-22.31,16.34-3.51,1.51-10.47,4.75-9.98,6.84.15.64,1.15,1.83,7.96,2,.17,1.27.28,3.5-.74,5.9-.33.78-.73,1.44-1.11,1.98-.6,1.12-1.46,3.1-1.59,5.69-.08,1.66.16,3.07.43,4.07-2.95,2.72-6.84,7.09-9.02,13.37-1.56,4.51-.48,4.93-1.85,9.66-2.7,9.29-7.57,10.07-10.83,20.4-1.31,4.16-1.42,6.87-.84,9.37.81,3.51,2.78,5.88,3.9,7.19,3.88,4.56,6.91,4.28,10.52,7.98,1.73,1.77,3.84,4.7,4.97,9.65"/></g>
+  <g id="pts-jianglang">
+    <path class="pt" data-name="江山县城" d="M473.31,512.41c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-brief" data-name="江郎山" d="M465.38,560.97c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="brief" data-name="江郎山" cx="464.10" cy="561.69" r="6"/>
+    <path class="pt" data-name="仙霞岭" d="M412.69,597.61c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98c1.27.15,2.18,1.28,2.03,2.53"/>
+    <path class="pt" data-name="浦城" d="M410.7,606.65c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt" data-name="枫岭关" d="M408.84,614.53c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <path class="pt pt-hot" id="pt-detail" data-name="九鲤湖" d="M407.68,624.29c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <circle class="hit" data-type="detail" data-name="九鲤湖" cx="406.40" cy="625.01" r="6"/>
+    <path class="pt" data-name="莆田·归程" d="M404.53,701.93c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>
+    <text class="lbl" text-anchor="start" x="476.53" y="515.93">江山县城</text>
+    <text class="lbl lbl-hot" text-anchor="start" x="468.60" y="564.49">江郎山</text>
+    <text class="lbl" text-anchor="start" x="415.91" y="601.13">仙霞岭</text>
+    <text class="lbl" text-anchor="start" x="413.92" y="610.17">浦城</text>
+    <text class="lbl" text-anchor="start" x="412.06" y="618.05">枫岭关</text>
+    <text class="lbl lbl-hot" text-anchor="start" x="410.90" y="627.81">九鲤湖</text>
+    <text class="lbl" text-anchor="start" x="407.75" y="705.45">莆田·归程</text>
+  </g>
+</svg>
