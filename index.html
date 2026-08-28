@@ -18,6 +18,12 @@
       --sidebar-w: 18vw;
       --map-w: 65vw;
       --card-w: 17vw;
+      /* 动效曲线与阴影（古典克制版） */
+      --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --ease-ink: cubic-bezier(0.4, 0, 0.2, 1);
+      --shadow-rest: 0 2px 12px rgba(44, 24, 16, 0.06);
+      --shadow-hover: 0 8px 24px rgba(44, 24, 16, 0.14);
+      --shadow-active: 0 0 0 1px rgba(192, 57, 43, 0.25), 0 8px 24px rgba(192, 57, 43, 0.16);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -70,11 +76,21 @@
     /* Logo区域 */
     .sidebar-logo {
       text-align: center; margin-bottom: 32px; width: 100%;
+      position: relative; padding-bottom: 16px;
+    }
+    .sidebar-logo::after {
+      content: "❖";
+      position: absolute; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      color: var(--accent-gold); font-size: 10px;
+      background: linear-gradient(180deg, rgba(254,252,248,0.96), rgba(245,236,220,0.92));
+      padding: 0 10px;
     }
     .sidebar-logo .logo-title {
       font-size: 26px; font-weight: bold; color: var(--ink-dark);
       letter-spacing: 6px; margin-bottom: 6px;
       font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
     }
     .sidebar-logo .logo-sub {
       font-size: 11px; color: var(--ink-light); letter-spacing: 3px;
@@ -90,21 +106,62 @@
       background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(252,248,240,0.5) 100%);
       border: 1px solid var(--accent-gold);
       border-radius: 6px; position: relative;
-      transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      box-shadow: 0 2px 12px rgba(44,24,16,0.06);
+      transition: transform 0.4s var(--ease-soft),
+                  box-shadow 0.4s var(--ease-soft),
+                  border-color 0.4s var(--ease-soft),
+                  background 0.4s var(--ease-soft);
+      box-shadow: var(--shadow-rest);
+    }
+    /* 内层装饰边框 */
+    .chapter-card::before {
+      content: ""; position: absolute; inset: 4px;
+      border: 1px solid rgba(196, 169, 125, 0.22);
+      border-radius: 4px; pointer-events: none;
+      transition: border-color 0.4s var(--ease-soft);
     }
     .chapter-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(44,24,16,0.12);
+      transform: translateX(4px) translateY(-1px);
+      box-shadow: var(--shadow-hover);
       border-color: var(--ink-mid);
+      background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(252,248,240,0.6) 100%);
     }
+    .chapter-card:hover::before { border-color: rgba(196, 169, 125, 0.5); }
     .chapter-card.active {
-      background: linear-gradient(135deg, rgba(196,169,125,0.2) 0%, rgba(196,169,125,0.1) 100%);
+      background: linear-gradient(135deg, rgba(196,169,125,0.28) 0%, rgba(196,169,125,0.12) 100%);
       border-color: var(--accent-red);
-      box-shadow: 0 0 0 2px rgba(192,57,43,0.15);
+      box-shadow: var(--shadow-active);
+      transform: translateX(3px);
+    }
+    .chapter-card.active::before { border-color: rgba(192, 57, 43, 0.32); }
+    /* active 朱砂印章 */
+    .chapter-card.active::after {
+      content: "霞";
+      position: absolute; top: 8px; right: 8px;
+      width: 22px; height: 22px;
+      background: linear-gradient(135deg, #c0392b 0%, #9c2817 100%);
+      color: rgba(255, 245, 230, 0.96);
+      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+      font-size: 13px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 3px;
+      box-shadow: 0 2px 6px rgba(192, 57, 43, 0.4);
+      letter-spacing: 0;
+      animation: sealPress 0.45s var(--ease-ink) both;
+    }
+    .chapter-card.active:hover {
+      transform: translateX(5px) translateY(-1px);
+    }
+    @keyframes sealPress {
+      0%   { transform: rotate(-6deg) scale(1.8); opacity: 0; }
+      55%  { transform: rotate(-4deg) scale(0.88); opacity: 1; }
+      100% { transform: rotate(-4deg) scale(1); opacity: 1; }
     }
     .chapter-card .card-icon {
       font-size: 22px; margin-bottom: 8px; display: block;
+      transition: transform 0.4s var(--ease-soft);
+    }
+    .chapter-card:hover .card-icon {
+      transform: scale(1.12) translateY(-2px);
     }
     .chapter-card .card-title {
       font-size: 15px; font-weight: bold; color: var(--ink-dark);
@@ -132,11 +189,14 @@
       border: 2px solid var(--accent-gold);
       border-radius: 8px;
       box-shadow:
-        inset 0 0 60px rgba(196,169,125,0.1),
-        0 0 30px rgba(44,24,16,0.08);
+        inset 0 0 0 1px rgba(196, 169, 125, 0.4),
+        inset 0 0 60px rgba(196, 169, 125, 0.1),
+        0 4px 24px rgba(44, 24, 16, 0.1),
+        0 0 30px rgba(44, 24, 16, 0.08);
       overflow: hidden;
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
       z-index: 2;
+      transition: box-shadow 0.5s var(--ease-soft);
     }
     /* 卷轴轴头 */
     .scroll-frame::before,
@@ -175,14 +235,44 @@
       background: rgba(255,255,255,0.75);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       font-size: 16px; color: var(--ink-mid);
-      transition: all 0.3s ease;
+      transition: transform 0.3s var(--ease-soft),
+                  box-shadow 0.3s var(--ease-soft),
+                  background 0.3s var(--ease-soft),
+                  border-color 0.3s var(--ease-soft);
       box-shadow: 0 2px 8px rgba(44,24,16,0.08);
       backdrop-filter: blur(4px);
+      position: relative;
+    }
+    /* 按钮古典 tooltip */
+    .map-ctrl-btn::after {
+      content: attr(data-tip);
+      position: absolute; right: 115%; top: 50%;
+      transform: translateY(-50%) translateX(6px);
+      white-space: nowrap;
+      background: linear-gradient(135deg, rgba(44, 24, 16, 0.93), rgba(92, 61, 46, 0.93));
+      color: var(--paper);
+      font-size: 11px; letter-spacing: 2px;
+      padding: 5px 10px; border-radius: 3px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s var(--ease-soft), transform 0.25s var(--ease-soft);
+      box-shadow: 0 2px 8px rgba(44, 24, 16, 0.2);
+      border: 1px solid rgba(196, 169, 125, 0.4);
+      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
     }
     .map-ctrl-btn:hover {
       background: rgba(196,169,125,0.3);
       border-color: var(--ink-mid);
-      transform: scale(1.1);
+      transform: scale(1.08) translateY(-1px);
+      box-shadow: 0 6px 16px rgba(44,24,16,0.14);
+    }
+    .map-ctrl-btn:hover::after {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+    /* 印章按压反馈 */
+    .map-ctrl-btn:active {
+      transform: scale(0.94);
+      box-shadow: inset 0 2px 6px rgba(44, 24, 16, 0.22), 0 1px 4px rgba(44, 24, 16, 0.1);
     }
 
     /* ==========================================
@@ -199,12 +289,21 @@
       padding: 30px 18px 20px;
       position: relative; z-index: 10;
       overflow-y: auto;
-      box-shadow: -3px 0 30px rgba(44,24,16,0.08);
+      box-shadow: -3px 0 30px rgba(44,24,16,0.08), inset 1px 0 0 rgba(196, 169, 125, 0.35);
     }
     .info-panel .panel-title {
       font-size: 17px; font-weight: bold; color: var(--ink-dark);
       letter-spacing: 4px; text-align: center; margin-bottom: 24px;
-      padding-bottom: 14px; border-bottom: 1px solid rgba(196,169,125,0.5);
+      padding-bottom: 14px; position: relative;
+      border-bottom: 1px solid rgba(196,169,125,0.5);
+    }
+    .info-panel .panel-title::after {
+      content: "❖";
+      position: absolute; bottom: -5px; left: 50%;
+      transform: translateX(-50%);
+      color: var(--accent-gold); font-size: 9px;
+      background: linear-gradient(180deg, rgba(254,252,248,0.96), rgba(245,236,220,0.94));
+      padding: 0 8px;
     }
     .info-panel .intro-text {
       font-size: 13px; color: var(--ink-mid); line-height: 2.2;
@@ -219,6 +318,11 @@
       background: linear-gradient(135deg, rgba(196,169,125,0.12) 0%, rgba(196,169,125,0.05) 100%);
       border-left: 3px solid var(--accent-red);
       border-radius: 4px;
+      transition: transform 0.35s var(--ease-soft), box-shadow 0.35s var(--ease-soft);
+    }
+    .quote-card:hover {
+      transform: translateX(-2px);
+      box-shadow: 0 4px 14px rgba(192, 57, 43, 0.12);
     }
     .quote-card .quote-text {
       font-size: 13px; color: var(--ink-mid); line-height: 2;
@@ -232,7 +336,16 @@
     /* 装饰分隔线 */
     .divider {
       width: 60%; height: 1px; margin: 16px auto;
+      position: relative;
       background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    }
+    .divider::after {
+      content: "❖";
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--accent-gold); font-size: 9px;
+      background: linear-gradient(180deg, rgba(254, 252, 248, 0.96), rgba(245, 236, 220, 0.94));
+      padding: 0 8px;
     }
 
     /* ==========================================
@@ -262,19 +375,50 @@
 
     /* ===== 自定义地图弹窗 ===== */
     .leaflet-popup-content-wrapper {
-      background: rgba(255,252,245,0.95) !important;
+      background: linear-gradient(135deg, rgba(255,252,245,0.97) 0%, rgba(248,238,220,0.95) 100%) !important;
       border: 1px solid #c4a97d !important;
       border-radius: 6px !important;
-      box-shadow: 0 4px 20px rgba(44,24,16,0.12) !important;
+      box-shadow: 0 6px 24px rgba(44,24,16,0.18), inset 0 0 0 1px rgba(196,169,125,0.3) !important;
       font-family: "Noto Serif SC", "SimSun", serif !important;
       color: #5c3d2e !important;
     }
-    .leaflet-popup-tip { background: rgba(255,252,245,0.95) !important; }
-    .custom-popup h4 {
-      margin: 0 0 4px 0; font-size: 14px; color: #2c1810; letter-spacing: 3px;
-      border-bottom: 1px solid rgba(196,169,125,0.4); padding-bottom: 6px;
+    .leaflet-popup-content { margin: 12px 16px !important; line-height: 1.7; }
+    .leaflet-popup-tip {
+      background: rgba(255,252,245,0.97) !important;
+      border: 1px solid #c4a97d !important;
+      box-shadow: 0 2px 6px rgba(44,24,16,0.12) !important;
     }
-    .custom-popup p { margin: 4px 0; font-size: 12px; color: #8b7355; line-height: 1.7; }
+    .custom-popup { position: relative; }
+    .custom-popup h4 {
+      margin: 0 0 8px 0; font-size: 15px; color: #2c1810; letter-spacing: 4px;
+      padding-bottom: 8px; text-align: center;
+      border-bottom: 1px solid rgba(196,169,125,0.4);
+      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+    }
+    .custom-popup p {
+      margin: 6px 0 4px; font-size: 12px; color: #8b7355;
+      line-height: 1.8; text-align: center; letter-spacing: 1px;
+    }
+    /* 弹窗底部古典尾饰 */
+    .custom-popup::after {
+      content: "❧"; display: block; text-align: center;
+      color: rgba(196,169,125,0.65); font-size: 13px; margin-top: 6px;
+    }
+
+    /* ===== 地图 Marker 涟漪 ===== */
+    .xk-marker { position: relative; }
+    .xk-marker::before {
+      content: ""; position: absolute; inset: -8px;
+      border: 1px solid transparent; border-radius: 50%;
+      animation: markerPulse 2.6s var(--ease-soft) infinite;
+      pointer-events: none;
+    }
+    .xk-marker--red::before  { border-color: rgba(192, 57, 43, 0.55); }
+    .xk-marker--blue::before { border-color: rgba(44, 95, 138, 0.55); }
+    @keyframes markerPulse {
+      0%   { transform: scale(0.55); opacity: 0.85; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
 
     /* ===== 地图加载动画 ===== */
     .map-loading {
@@ -283,8 +427,178 @@
       color: var(--ink-light); font-size: 14px; letter-spacing: 3px;
       pointer-events: none;
     }
-    .map-loading .loading-icon { font-size: 36px; opacity: 0.3; margin-bottom: 10px; }
+    .map-loading .loading-icon {
+      font-size: 36px; opacity: 0.35; margin-bottom: 12px;
+      animation: loadPulse 2.4s var(--ease-soft) infinite;
+    }
+    @keyframes loadPulse {
+      0%, 100% { transform: scale(1); opacity: 0.22; }
+      50%      { transform: scale(1.08); opacity: 0.45; }
+    }
     .map-loading.hidden { display: none; }
+
+    /* ===== 全局淡入动画（古典克制版） ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .sidebar     { animation: fadeInUp 0.7s var(--ease-soft) both; }
+    .map-area    { animation: fadeIn 0.9s 0.1s var(--ease-soft) both; }
+    .info-panel  { animation: fadeInUp 0.7s 0.18s var(--ease-soft) both; }
+    .bottom-scape { animation: fadeIn 1.2s 0.4s var(--ease-soft) both; }
+
+    /* 尊重用户"减少动效"系统偏好 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ==========================================
+       第四章：文学与科学价值
+       ========================================== */
+    /* 价值章节容器：覆盖在地图之上，居中放置两张卡片 */
+    .value-panels {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: row; gap: 40px;
+      align-items: stretch; justify-content: center;
+      z-index: 8;
+      pointer-events: none;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.45s ease;
+    }
+    .value-panels.show {
+      opacity: 1; visibility: visible;
+      pointer-events: auto;
+    }
+    .value-panels.show .value-card {
+      animation: valueRise 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+    .value-panels.show .value-science { animation-delay: 0.12s; }
+    @keyframes valueRise {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 单张卡片 */
+    .value-card {
+      width: 360px; max-width: 32vw;
+      padding: 34px 30px 28px;
+      background: linear-gradient(135deg,
+        rgba(252, 246, 232, 0.86) 0%,
+        rgba(245, 236, 220, 0.80) 100%
+      );
+      border: 1px solid var(--accent-gold);
+      border-radius: 6px;
+      position: relative;
+      box-shadow:
+        0 6px 28px rgba(44, 24, 16, 0.12),
+        0 2px 8px rgba(44, 24, 16, 0.06);
+      backdrop-filter: blur(2px);
+      transition: box-shadow 0.5s var(--ease-soft),
+                  border-color 0.5s var(--ease-soft);
+    }
+    /* 第四章卡片 hover：阴影加深 + 金边变亮（不动 transform，避免与入场动画冲突） */
+    .value-panels.show .value-card:hover {
+      border-color: var(--ink-mid);
+      box-shadow:
+        0 14px 40px rgba(44, 24, 16, 0.18),
+        0 4px 12px rgba(44, 24, 16, 0.08),
+        inset 0 0 0 1px rgba(196, 169, 125, 0.5);
+    }
+    /* 内层很淡的装饰边框 */
+    .value-card::before {
+      content: ""; position: absolute; inset: 8px;
+      border: 1px solid rgba(196, 169, 125, 0.35);
+      border-radius: 4px; pointer-events: none;
+      transition: border-color 0.5s var(--ease-soft);
+    }
+    .value-panels.show .value-card:hover::before {
+      border-color: rgba(196, 169, 125, 0.55);
+    }
+
+    /* 四角传统角花 */
+    .value-corner {
+      position: absolute; width: 16px; height: 16px;
+      border: 1px solid var(--accent-gold); pointer-events: none;
+    }
+    .value-corner.tl { top: 4px; left: 4px;  border-right: none; border-bottom: none; }
+    .value-corner.tr { top: 4px; right: 4px; border-left: none;  border-bottom: none; }
+    .value-corner.bl { bottom: 4px; left: 4px; border-right: none; border-top: none; }
+    .value-corner.br { bottom: 4px; right: 4px; border-left: none;  border-top: none; }
+
+    /* 顶部古典装饰符号 */
+    .value-decoration {
+      text-align: center;
+      font-size: 22px; color: var(--accent-gold);
+      margin-bottom: 8px; letter-spacing: 4px; line-height: 1;
+    }
+
+    /* 卡片标题（楷体） */
+    .value-card .value-title {
+      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+      font-size: 30px; font-weight: bold;
+      color: var(--ink-dark);
+      text-align: center;
+      letter-spacing: 10px; text-indent: 10px;
+      margin-bottom: 14px;
+    }
+
+    /* 标题下装饰分隔线 */
+    .value-line {
+      width: 55%; height: 1px; margin: 0 auto 18px;
+      position: relative;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    }
+    .value-line::after {
+      content: "❖";
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--accent-gold); font-size: 10px;
+      background: linear-gradient(135deg, rgba(252, 246, 232, 0.95), rgba(245, 236, 220, 0.92));
+      padding: 0 8px;
+    }
+
+    /* 小标题 */
+    .value-card .value-sub {
+      font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+      font-size: 14px; color: var(--ink-mid);
+      text-align: center; letter-spacing: 3px;
+      margin-bottom: 16px; font-style: italic;
+    }
+
+    /* 正文 */
+    .value-card .value-text {
+      font-size: 14px; line-height: 2.1;
+      color: var(--ink-mid); letter-spacing: 1px;
+      text-indent: 2em; text-align: justify;
+    }
+
+    /* 第四章：进一步淡化地图底图 */
+    .map-area.chapter-value .leaflet-tile-pane {
+      filter: sepia(0.4) saturate(0.25) brightness(1.10) contrast(0.72) hue-rotate(350deg) opacity(0.55);
+    }
+    /* 第四章：隐藏右侧信息栏 */
+    .info-panel.value-hidden { display: none; }
+
+    /* 响应式 */
+    @media (max-width: 960px) {
+      .value-panels { flex-direction: column; gap: 18px; width: 86vw; }
+      .value-card {
+        width: 100%; max-width: none; padding: 22px 18px;
+      }
+      .value-card .value-title { font-size: 24px; letter-spacing: 6px; }
+      .value-card .value-sub { font-size: 13px; }
+      .value-card .value-text { font-size: 13px; line-height: 1.95; }
+    }
   </style>
 </head>
 <body>
@@ -330,15 +644,47 @@
     </div>
     <!-- 地图控件 -->
     <div class="map-controls">
-      <button class="map-ctrl-btn" title="指南针" id="btnCompass">🧭</button>
-      <button class="map-ctrl-btn" title="定位" id="btnLocate">📍</button>
-      <button class="map-ctrl-btn" title="图层" id="btnLayers">🗂</button>
+      <button class="map-ctrl-btn" data-tip="复位视角" title="指南针" id="btnCompass">🧭</button>
+      <button class="map-ctrl-btn" data-tip="全览路线" title="定位" id="btnLocate">📍</button>
+      <button class="map-ctrl-btn" data-tip="切换图层" title="图层" id="btnLayers">🗂</button>
     </div>
     <!-- 底部水墨 -->
     <div class="bottom-scape">
       <div class="mountain-bg l2"></div>
       <div class="mountain-bg l1"></div>
       <div class="bottom-text">探索山河之美 · 记录天地之奇</div>
+    </div>
+
+    <!-- ==================== 第四章：文学与科学价值 ==================== -->
+    <div class="value-panels" id="valuePanels">
+      <!-- 左侧：文学价值 -->
+      <div class="value-card value-literature">
+        <span class="value-corner tl"></span>
+        <span class="value-corner tr"></span>
+        <span class="value-corner bl"></span>
+        <span class="value-corner br"></span>
+        <div class="value-decoration">❧</div>
+        <div class="value-title">文学价值</div>
+        <div class="value-line"></div>
+        <div class="value-sub">以游记写山河，以文字见天地</div>
+        <p class="value-text">
+          《徐霞客游记》不仅是一部地理考察著作，也是一部具有独特文学价值的游记作品。徐霞客以亲身经历为基础，将山川地貌、风土人情与个人感受融入文字之中，形成了细腻、生动而富有感染力的山水描写。
+        </p>
+      </div>
+      <!-- 右侧：科学价值 -->
+      <div class="value-card value-science">
+        <span class="value-corner tl"></span>
+        <span class="value-corner tr"></span>
+        <span class="value-corner bl"></span>
+        <span class="value-corner br"></span>
+        <div class="value-decoration">❧</div>
+        <div class="value-title">科学价值</div>
+        <div class="value-line"></div>
+        <div class="value-sub">以足迹丈量山河，以观察探索自然</div>
+        <p class="value-text">
+          徐霞客长期深入实地考察，对山川地貌、水文、岩溶等自然现象进行了大量细致观察和记录。《徐霞客游记》保存了丰富的地理考察资料，对中国地理学、地貌学以及水文研究具有重要价值，也体现了严谨的实地探索精神。
+        </p>
+      </div>
     </div>
   </main>
 
@@ -443,7 +789,7 @@
       mountainMarkers.forEach(m => {
         const icon = L.divIcon({
           className: '',
-          html: `<div style="width:14px;height:14px;background:#c0392b;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(192,57,43,0.5);"></div>`,
+          html: `<div class="xk-marker xk-marker--red" style="width:14px;height:14px;background:#c0392b;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(192,57,43,0.5);"></div>`,
           iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -8],
         });
         const marker = L.marker([m.lat, m.lng], { icon }).addTo(markersGroup);
@@ -462,6 +808,9 @@
 
     // ===== 章节切换 =====
     const chapterCards = document.querySelectorAll('.chapter-card');
+    const valuePanels = document.getElementById('valuePanels');
+    const infoPanel   = document.getElementById('infoPanel');
+    const mapArea     = document.getElementById('mapArea');
 
     chapterCards.forEach(card => {
       card.addEventListener('click', function() {
@@ -472,6 +821,23 @@
 
         // 切换地图视图
         clearRoutes();
+
+        // ===== 第四章：文学与科学价值 =====
+        if (chapter === 'value') {
+          // 隐藏右侧信息栏、淡化地图底图、显示价值卡片
+          infoPanel.classList.add('value-hidden');
+          mapArea.classList.add('chapter-value');
+          valuePanels.classList.add('show');
+          // 第四章仅保留地图底图，不绘制路线与 marker
+          map.setView([30.5, 110], 5);
+          return;
+        }
+
+        // ===== 其他章节：恢复默认 UI，清除第四章残留状态 =====
+        infoPanel.classList.remove('value-hidden');
+        mapArea.classList.remove('chapter-value');
+        valuePanels.classList.remove('show');
+
         switch (chapter) {
           case 'intro':
             drawOverview();
@@ -487,7 +853,7 @@
             mountainMarkers.forEach(m => {
               const icon = L.divIcon({
                 className: '',
-                html: `<div style="width:14px;height:14px;background:#c0392b;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(192,57,43,0.5);"></div>`,
+                html: `<div class="xk-marker xk-marker--red" style="width:14px;height:14px;background:#c0392b;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(192,57,43,0.5);"></div>`,
                 iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -8],
               });
               const mk = L.marker([m.lat, m.lng], { icon }).addTo(markersGroup);
@@ -507,7 +873,7 @@
             lateCities.forEach(c => {
               const icon = L.divIcon({
                 className: '',
-                html: `<div style="width:12px;height:12px;background:#2c5f8a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(44,95,138,0.5);"></div>`,
+                html: `<div class="xk-marker xk-marker--blue" style="width:12px;height:12px;background:#2c5f8a;border-radius:50%;border:2px solid #fff;box-shadow:0 0 6px rgba(44,95,138,0.5);"></div>`,
                 iconSize: [12, 12], iconAnchor: [6, 6], popupAnchor: [0, -6],
               });
               const mk = L.marker([c.lat, c.lng], { icon }).addTo(markersGroup);
@@ -515,9 +881,6 @@
             });
             markersGroup.addTo(map);
             map.fitBounds([[22, 98], [31, 122]], { padding: [40, 40] });
-            break;
-          case 'value':
-            drawOverview();
             break;
         }
       });
