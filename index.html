@@ -597,20 +597,23 @@
     }
 
     /* ==========================================
-       模块二：前期名山漫游地形图（整块铺满地图区，竖版 1:1.414）
+       模块二：前期名山漫游路线图（contain 完整显示，竖版 1:1.414）
        ========================================== */
     .wechat-img-wrap {
       position: absolute; inset: 20px;
       z-index: 7; pointer-events: none;
       opacity: 0; visibility: hidden;
       transition: opacity 0.45s ease;
+      background: #faf6ec;
+      border-radius: 8px;
+      box-shadow: 0 6px 20px rgba(44, 24, 16, 0.10);
     }
     .wechat-img-wrap.show {
       opacity: 1; visibility: visible;
     }
     .wechat-img-wrap img {
       width: 100%; height: 100%;
-      object-fit: cover; object-position: center;
+      object-fit: contain; object-position: center;
       display: block;
     }
 
@@ -849,9 +852,9 @@
       </div>
     </div>
 
-    <!-- ==================== 模块二：前期名山漫游地形图（铺满地图区） ==================== -->
+    <!-- ==================== 模块二：前期名山漫游路线图（完整显示于地图区） ==================== -->
     <div class="wechat-img-wrap" id="wechatImgWrap">
-      <img src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/wechat-name.png" alt="前期名山漫游地形图">
+      <img src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/route-map.png" alt="前期名山漫游路线图">
     </div>
   </main>
 
