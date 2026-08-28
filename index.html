@@ -1461,7 +1461,7 @@
         no: "第三程", name: "徽闽行", year: "万历四十四年（1616）",
         points: [
           {
-            type: "brief", name: "武夷山 · 九曲溪",
+            type: "brief", name: "武夷 · 九曲溪",
             img: "assets/img/1616-jiuqu.jpg", imgSize: "1200×900 px（4:3 横版，水墨/古风插画，主色黛青·赭红）",
             sub: "万历四十四年 · 徽闽之行",
             paras: ["武夷山三十六峰倒插溪流，徐霞客乘一叶竹筏顺九曲而下，\"一篙一曲\"间峰峰入怀。他记峰、记岩、记茶，笔笔如画，是游记中最闲适的一段水路。", "演绎：筏工撑篙点石，他却在记每曲的峰名与形态，遇奇石便令筏工稍停——九曲水路走成了\"移动的画室\"。"],
@@ -1469,7 +1469,7 @@
             tags: ["#竹筏九曲", "#丹山碧水", "#移动画室"],
           },
           {
-            type: "brief", name: "武夷山 · 天游峰",
+            type: "brief", name: "武夷 · 天游峰",
             img: "assets/img/1616-tianyou.jpg", imgSize: "1200×900 px（4:3 横版，水墨/古风插画，峰顶云海俯瞰九曲）",
             sub: "万历四十四年 · 徽闽之行",
             paras: ["天游峰独出群峰，一览九曲全景。徐霞客评其\"不临溪而能尽九曲之胜，此峰固应第一也\"——一句话把它推上了武夷之巅。", "演绎：他攀上峰顶时正值雨后，云雾在脚下翻涌如潮，九曲溪时隐时现；他摊开游记当场核对来路，笑称这是\"天然舆图\"。"],
@@ -1686,26 +1686,44 @@
         .then(make);
     }
 
+    let litDot = null; // 当前因面板打开而保持点亮红点
     function bindRouteInteractions(route) {
       const el = routeSvgOverlays[route.id].getElement();
+      // 名称归一化:去空白后做前缀/包含匹配(SVG 短名如"大龙湫" 对应面板全名"雁荡山 · 大龙湫")
+      const norm = s => (s || '').replace(/\s/g, '');
+      const findDot = name => {
+        const n = norm(name);
+        return Array.from(el.querySelectorAll('.pt-hot')).find(d => {
+          const dn = norm(d.dataset.name);
+          return dn === n || n.includes(dn) || dn.includes(n);
+        });
+      };
       el.querySelectorAll('.hit').forEach(hit => {
+        const hitName = hit.dataset.name;
         hit.addEventListener('click', (ev) => {
           ev.stopPropagation();
           if (routeClickSuppressed) return; // 拖拽结束的误触，忽略
-          const pt = route.points.find(p => p.type === hit.dataset.type);
+          const n = norm(hitName);
+          const pt = route.points.find(p => {
+            const pn = norm(p.name);
+            return pn === n || pn.includes(n) || n.includes(pn);
+          });
           if (pt) {
+            // 点亮的红点全局唯一:先熄灭所有,再点亮当前
+            if (litDot) litDot.classList.remove('lit');
+            litDot = findDot(hitName);
+            if (litDot) litDot.classList.add('lit');
             openPointPanel(pt);
             // 地图层面浮现带回声字效的地名
-            showMapEcho(hit.dataset.name, parseFloat(hit.getAttribute('cx')), parseFloat(hit.getAttribute('cy')));
+            showMapEcho(hitName, parseFloat(hit.getAttribute('cx')), parseFloat(hit.getAttribute('cy')));
           }
         });
-      });
-      // 点位悬停点亮相邻的白点圆点
-      el.querySelectorAll('.pt-hot').forEach(dot => {
-        const hit = el.querySelector(`.hit[data-type="${dot.id.replace('pt-', '')}"]`);
-        if (!hit) return;
-        hit.addEventListener('mouseenter', () => dot.classList.add('lit'));
-        hit.addEventListener('mouseleave', () => dot.classList.remove('lit'));
+        // 悬停点亮:按名称精确配对自身红点(点击选中的红点保持亮)
+        const dot = findDot(hitName);
+        if (dot) {
+          hit.addEventListener('mouseenter', () => dot.classList.add('lit'));
+          hit.addEventListener('mouseleave', () => { if (dot !== litDot) dot.classList.remove('lit'); });
+        }
       });
     }
 
@@ -1901,6 +1919,7 @@
 
     function closePointPanel() {
       destroyMapEcho();
+      if (litDot) { litDot.classList.remove('lit'); litDot = null; }
       document.getElementById('pointPanel').classList.remove('show');
     }
 
