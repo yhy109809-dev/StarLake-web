@@ -769,6 +769,14 @@
       .echo-text__echo:not(.echo-text__echo--front) { display: none; }
     }
 
+    /* ===== 地图层面的地名回声浮现标签 ===== */
+    .map-echo-label {
+      position: absolute; z-index: 800; transform: translate(-50%, -100%);
+      font-family: "KaiTi", "STKaiti", serif; font-size: 26px; font-weight: bold;
+      color: #2c1810; letter-spacing: 4px; pointer-events: none; white-space: nowrap;
+      text-shadow: 0 0 6px rgba(244,236,216,0.95), 0 0 14px rgba(244,236,216,0.75);
+    }
+
     /* ==========================================
        第四章：文学与科学价值
        ========================================== */
@@ -1158,8 +1166,8 @@
       document.getElementById('btnEarlyReset').addEventListener('click', () => {
         earlyMap.fitBounds(earlyBounds);
       });
-      // 拖拽/缩放期间抑制点击，防止拖图松手时误触点位
-      earlyMap.on('movestart', () => { routeClickSuppressed = true; });
+      // 拖拽/缩放期间抑制点击，防止拖图松手时误触点位；同时隐去地图回声地名
+      earlyMap.on('movestart', () => { routeClickSuppressed = true; destroyMapEcho(); });
       earlyMap.on('moveend dragend', () => { setTimeout(() => { routeClickSuppressed = false; }, 80); });
       initRouteSystem();
     }
@@ -1221,15 +1229,7 @@
       '<circle class="hit" data-type="detail" data-name="雁湖绝壁" cx="482.38" cy="621.18" r="6"/>' +
       '<path class="pt" data-name="临海·归程" d="M481.34,627.08c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53c.15-1.24,1.3-2.13,2.57-1.98s2.18,1.28,2.03,2.53"/>' +
       '<text class="lbl" text-anchor="start" x="477.03" y="515.93">宁海·启程</text>' +
-      '<text class="lbl" text-anchor="start" x="485.80" y="534.68">梁皇山</text>' +
-      '<text class="lbl" text-anchor="start" x="471.26" y="566.85">华顶</text>' +
       '<text class="lbl lbl-hot" text-anchor="start" x="479.97" y="573.29">石梁飞瀑</text>' +
-      '<text class="lbl" text-anchor="start" x="495.79" y="573.97">方广寺</text>' +
-      '<text class="lbl" text-anchor="start" x="508.76" y="580.62">万年寺</text>' +
-      '<text class="lbl" text-anchor="start" x="526.14" y="578.49">天台县城</text>' +
-      '<text class="lbl" text-anchor="start" x="534.51" y="580.09">大荆驿</text>' +
-      '<text class="lbl" text-anchor="start" x="502.80" y="597.31">灵峰</text>' +
-      '<text class="lbl" text-anchor="start" x="492.37" y="597.57">灵岩</text>' +
       '<text class="lbl lbl-hot" text-anchor="start" x="495.98" y="616.00">大龙湫</text>' +
       '<text class="lbl lbl-hot" text-anchor="start" x="487.38" y="623.98">雁湖绝壁</text>' +
       '<text class="lbl" text-anchor="start" x="485.06" y="630.60">临海·归程</text>' +
@@ -1693,7 +1693,11 @@
           ev.stopPropagation();
           if (routeClickSuppressed) return; // 拖拽结束的误触，忽略
           const pt = route.points.find(p => p.type === hit.dataset.type);
-          if (pt) openPointPanel(pt);
+          if (pt) {
+            openPointPanel(pt);
+            // 地图层面浮现带回声字效的地名
+            showMapEcho(hit.dataset.name, parseFloat(hit.getAttribute('cx')), parseFloat(hit.getAttribute('cy')));
+          }
         });
       });
       // 点位悬停点亮相邻的白点圆点
@@ -1724,28 +1728,22 @@
       closePointPanel();
     }
 
-    // ===== EchoText 回声字效（移植自 React Bits，原生 JS 版；用于点位面板标题） =====
-    let echoFrame = null;
-    let echoPointerMove = null;
-    let echoPointerLeave = null;
+    // ===== EchoText 回声字效（移植自 React Bits，原生 JS 实例化版） =====
+    const echoRegistry = new Map(); // el -> destroy()
 
-    function mountEchoText(el, text) {
+    function destroyEcho(el) {
+      const d = echoRegistry.get(el);
+      if (d) d();
+    }
+
+    function mountEchoText(el, text, userOpts, baseColor) {
+      const opts = Object.assign({ echoes: 7, lag: 0.22, offset: 16, direction: 'right', fade: 0.62,
+        blur: 2, tint: '#c4a97d', mode: 'both', cursorRadius: 260, duration: 800, ease: 'ease-out' }, userOpts || {});
+      const color = baseColor || '#2c1810';
       const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-      const vectors = { right:{x:1,y:0}, left:{x:-1,y:0}, up:{x:0,y:-1}, down:{x:0,y:1}, diagonal:{x:0.72,y:0.72} };
-      const easings = {
-        linear: t => t,
-        'ease-out': t => 1 - Math.pow(1 - t, 3),
-        'ease-in-out': t => (t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2),
-        snappy: t => 1 - Math.pow(1 - t, 5),
-      };
-      const opts = { echoes: 7, lag: 0.22, offset: 16, direction: 'right', fade: 0.62,
-                     blur: 2, tint: '#c4a97d', mode: 'both', cursorRadius: 260, duration: 800, ease: 'ease-out' };
-      const color = '#2c1810';
 
-      // 清理上一次实例
-      if (echoFrame) { cancelAnimationFrame(echoFrame); echoFrame = null; }
-      if (echoPointerMove) { window.removeEventListener('pointermove', echoPointerMove); echoPointerMove = null; }
-      if (echoPointerLeave) { document.removeEventListener('pointerleave', echoPointerLeave); echoPointerLeave = null; }
+      // 清理该元素上的旧实例
+      if (echoRegistry.has(el)) echoRegistry.get(el)();
 
       const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const echoCount = reduced ? 0 : clamp(Math.round(opts.echoes), 0, 24);
@@ -1768,8 +1766,15 @@
       front.className = 'echo-text__echo echo-text__echo--front';
       front.textContent = text;
       el.appendChild(front); spans[0] = front;
-      if (reduced || echoCount === 0) return;
+      if (reduced || echoCount === 0) { echoRegistry.delete(el); return; }
 
+      const vectors = { right:{x:1,y:0}, left:{x:-1,y:0}, up:{x:0,y:-1}, down:{x:0,y:1}, diagonal:{x:0.72,y:0.72} };
+      const easings = {
+        linear: t => t,
+        'ease-out': t => 1 - Math.pow(1 - t, 3),
+        'ease-in-out': t => (t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2),
+        snappy: t => 1 - Math.pow(1 - t, 5),
+      };
       const vector = vectors[opts.direction] || vectors.right;
       const safeOffset = clamp(opts.offset, 0, 120);
       const safeCursor = clamp(opts.cursorRadius, 40, 1200);
@@ -1782,8 +1787,11 @@
 
       const positions = Array.from({ length: echoCount + 1 }, () => ({ x: 0, y: 0 }));
       const state = { tx: 0, ty: 0, lx: 0, ly: 0, activity: entranceEnabled ? 1 : 0, startTime: performance.now() };
+      let frame = null;
+      let moveHandler = null, leaveHandler = null;
 
       const handleMove = ev => {
+        if (!echoRegistry.has(el)) return;
         const rect = el.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
         const dx = ev.clientX - (rect.left + rect.width/2);
@@ -1792,13 +1800,13 @@
         const reach = dist > 0 ? clamp(dist / safeCursor, 0, 1) : 0;
         state.tx = (dist > 0 ? dx/dist : 0) * reach * safeOffset;
         state.ty = (dist > 0 ? dy/dist : 0) * reach * safeOffset * 0.72;
-        if (echoFrame === null) echoFrame = requestAnimationFrame(render);
+        if (frame === null) frame = requestAnimationFrame(render);
       };
       const handleLeave = () => { state.tx = 0; state.ty = 0; };
 
       if (pointerEnabled && window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-        echoPointerMove = handleMove;
-        echoPointerLeave = handleLeave;
+        moveHandler = handleMove;
+        leaveHandler = handleLeave;
         window.addEventListener('pointermove', handleMove, { passive: true });
         document.addEventListener('pointerleave', handleLeave);
       }
@@ -1832,13 +1840,42 @@
           if (spans[i]) spans[i].style.opacity = String(Math.pow(safeFade, i) * state.activity);
         }
         const still = state.activity > 0.002 || Math.abs(state.tx) > 0.01 || Math.abs(state.ty) > 0.01 || progress < 1;
-        echoFrame = still ? requestAnimationFrame(render) : null;
+        frame = still ? requestAnimationFrame(render) : null;
       };
-      echoFrame = requestAnimationFrame(render);
+      frame = requestAnimationFrame(render);
+
+      const destroy = () => {
+        if (frame) cancelAnimationFrame(frame); frame = null;
+        if (moveHandler) { window.removeEventListener('pointermove', moveHandler); document.removeEventListener('pointerleave', leaveHandler); }
+        echoRegistry.delete(el);
+      };
+      echoRegistry.set(el, destroy);
+    }
+
+    // ===== 地图层面的地名回声浮现 =====
+    let mapEchoEl = null;
+    function destroyMapEcho() {
+      if (mapEchoEl) { destroyEcho(mapEchoEl); mapEchoEl.remove(); mapEchoEl = null; }
+    }
+    function showMapEcho(name, cx, cy) {
+      destroyMapEcho();
+      // SVG viewBox 坐标(595.28×841.89) → 底图坐标(1055×1491) → 容器像素点
+      const lng = cx * 1055 / 595.28;
+      const lat = -cy * 1491 / 841.89;
+      const p = earlyMap.latLngToContainerPoint(L.latLng(lat, lng));
+      const div = document.createElement('div');
+      div.className = 'map-echo-label';
+      div.style.left = p.x + 'px';
+      div.style.top = (p.y - 26) + 'px';
+      div.textContent = name;
+      document.getElementById('earlyMapContainer').appendChild(div);
+      mapEchoEl = div;
+      mountEchoText(div, name, { echoes: 6, offset: 22, blur: 3, tint: '#c0392b', duration: 900 }, '#2c1810');
     }
 
     function openPointPanel(pt) {
       const panel = document.getElementById('pointPanel');
+      panel.querySelectorAll('.pp-title').forEach(destroyEcho); // 清理上一条回声实例
       const imgs = pt.img
         ? `<img src="${pt.img}" alt="${pt.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
            <div class="img-ph" style="display:none;flex-direction:column;">配图位<br>${pt.imgSize}</div>`
@@ -1863,6 +1900,7 @@
     }
 
     function closePointPanel() {
+      destroyMapEcho();
       document.getElementById('pointPanel').classList.remove('show');
     }
 

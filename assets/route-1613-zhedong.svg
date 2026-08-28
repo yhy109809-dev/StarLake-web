@@ -19,15 +19,7 @@
     <circle class="hit" data-type="detail" data-name="雁湖绝壁" cx="482.38" cy="621.18" r="6"/>
     <path class="pt" data-name="临海·归程" d="M481.34,627.08c-.15,1.25-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53c.15-1.24,1.3-2.13,2.57-1.98s2.18,1.28,2.03,2.53"/>
     <text class="lbl" text-anchor="start" x="477.03" y="515.93">宁海·启程</text>
-    <text class="lbl" text-anchor="start" x="485.80" y="534.68">梁皇山</text>
-    <text class="lbl" text-anchor="start" x="471.26" y="566.85">华顶</text>
     <text class="lbl lbl-hot" text-anchor="start" x="479.97" y="573.29">石梁飞瀑</text>
-    <text class="lbl" text-anchor="start" x="495.79" y="573.97">方广寺</text>
-    <text class="lbl" text-anchor="start" x="508.76" y="580.62">万年寺</text>
-    <text class="lbl" text-anchor="start" x="526.14" y="578.49">天台县城</text>
-    <text class="lbl" text-anchor="start" x="534.51" y="580.09">大荆驿</text>
-    <text class="lbl" text-anchor="start" x="502.80" y="597.31">灵峰</text>
-    <text class="lbl" text-anchor="start" x="492.37" y="597.57">灵岩</text>
     <text class="lbl lbl-hot" text-anchor="start" x="495.98" y="616.00">大龙湫</text>
     <text class="lbl lbl-hot" text-anchor="start" x="487.38" y="623.98">雁湖绝壁</text>
     <text class="lbl" text-anchor="start" x="485.06" y="630.60">临海·归程</text>
