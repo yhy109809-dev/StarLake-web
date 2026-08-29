@@ -445,6 +445,26 @@
       background: linear-gradient(180deg, rgba(254,252,248,0.96), rgba(245,236,220,0.94));
       padding: 0 8px;
     }
+    .ip-portrait {
+      width: 100%; border-radius: 6px; border: 1px solid var(--accent-gold);
+      box-shadow: 0 4px 14px rgba(44,24,16,0.16); display: block; margin-bottom: 14px;
+      background: var(--paper-dark);
+    }
+    .ip-portrait-ph {
+      width: 100%; aspect-ratio: 3 / 4; border: 1.5px dashed rgba(196,169,125,0.7);
+      border-radius: 6px; background: rgba(239,224,204,0.6);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; text-align: center; color: var(--ink-light);
+      font-size: 13px; letter-spacing: 2px; font-family: "KaiTi","STKaiti",serif;
+      margin-bottom: 14px;
+    }
+    .ip-portrait-ph small { font-size: 10px; letter-spacing: 0.5px; opacity: 0.8;
+      font-family: "Noto Serif SC","SimSun",serif; }
+    .ip-section .ip-h {
+      font-family: "KaiTi","STKaiti",serif; font-size: 15px; font-weight: bold;
+      color: var(--ink-dark); letter-spacing: 2px; margin-bottom: 8px;
+      padding-left: 8px; border-left: 3px solid var(--accent-red); line-height: 1.4;
+    }
     .info-panel .intro-text {
       font-size: 13px; color: var(--ink-mid); line-height: 2.2;
       letter-spacing: 1px; margin-bottom: 20px;
@@ -1009,6 +1029,10 @@
       stroke-linecap: round; stroke-linejoin: round;
       filter: drop-shadow(0 0 2.5px rgba(80,140,200,0.5));
     }
+    #xxk-root {
+      filter: saturate(1.15) contrast(1.1) brightness(1.02)
+              drop-shadow(0 1.2px 1.2px rgba(44,24,16,0.42));
+    }
     #xxk-bob { animation: xxkBob 0.85s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
     @keyframes xxkBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.1px); } }
     #xxk-flip { transform-box: fill-box; transform-origin: center; }
@@ -1286,20 +1310,24 @@
 
   <!-- ==================== 右侧信息卡片 17% ==================== -->
   <aside class="info-panel" id="infoPanel">
-    <div class="panel-title">走进徐霞客的世界</div>
-    <p class="intro-text">
-      徐霞客<span class="highlight">（1587—1641）</span>，明代地理学家、旅行家、文学家。
-      一生足迹遍及大半个中国，以双脚丈量山河。
-    </p>
+    <img class="ip-portrait" src="assets/xxk-portrait.png" alt="徐霞客人物照"
+         onerror="this.outerHTML='<div class=&quot;ip-portrait-ph&quot;>徐霞客画像<br><small>放置 assets/xxk-portrait.png 后自动显示</small></div>'">
+    <div class="ip-section">
+      <div class="ip-h">徐霞客简介</div>
+      <p class="intro-text">徐霞客<span class="highlight">（1587—1641）</span>，明代地理学家、旅行家、文学家。自青年时期起，他以徒步方式遍访中国山河，三十余年间行程万里，考察众多名山大川。</p>
+      <p class="intro-text">他突破传统游历方式，将旅行与科学考察结合，通过实地观察记录自然地理现象，被誉为<span class="highlight">"中国旅游地理学的先驱"</span>。</p>
+    </div>
     <div class="divider"></div>
-    <p class="intro-text">
-      自<span class="highlight">二十二岁</span>出游，三十余年行走，
-      足迹遍及今<span class="highlight">二十一个省</span>。
-      著《徐霞客游记》六十余万字。
-    </p>
-    <div class="quote-card">
-      <p class="quote-text">丈夫当朝游四海，<br>登山则情满于山，<br>观海则意溢于海。</p>
-      <p class="quote-author">—— 徐霞客</p>
+    <div class="ip-section">
+      <div class="ip-h">《徐霞客游记》创作背景</div>
+      <p class="intro-text">明代中后期，社会文化发展，山水游历逐渐兴盛。徐霞客发现传统地理记载存在不足，于是立志亲自探索真实山河。</p>
+      <p class="intro-text">从<span class="highlight">1607年</span>开始，他长期跋涉各地，将沿途山川、水系、地貌和风土记录下来，最终形成《徐霞客游记》。</p>
+    </div>
+    <div class="divider"></div>
+    <div class="ip-section">
+      <div class="ip-h">《徐霞客游记》</div>
+      <p class="intro-text">《徐霞客游记》是一部集地理考察、科学记录和文学描写于一体的重要著作。</p>
+      <p class="intro-text">全书记载了徐霞客遍游中国的经历，涉及山脉、水系、岩溶地貌等内容，不仅具有重要地理科学价值，也展现了中国古代山水文学的独特魅力。</p>
     </div>
     <div class="divider"></div>
     <p class="intro-text" style="font-size:12px;text-align:center;color:var(--ink-light);">
