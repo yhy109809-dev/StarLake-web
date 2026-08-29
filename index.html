@@ -159,16 +159,28 @@
       padding: 0 10px;
     }
     .sidebar-logo .logo-title {
-      position: relative; height: 38px; margin-bottom: 6px;
       font-size: 26px; font-weight: bold; color: var(--ink-dark);
-      letter-spacing: 6px;
+      letter-spacing: 6px; margin-bottom: 6px;
       font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
     }
-    .logo-particle { position: relative; display: block; width: 100%; height: 100%; overflow: visible; }
-    .logo-particle canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .logo-particle .lp-sr {
-      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    /* ===== GlitchText 标题(React Bits 移植,水墨配色:朱砂/黛蓝错位重影) ===== */
+    .logo-title.glitch { position: relative; user-select: none; cursor: default; white-space: nowrap; }
+    .logo-title.glitch::after,
+    .logo-title.glitch::before {
+      content: attr(data-text); position: absolute; top: 0; left: 0; right: 0;
+      color: var(--ink-dark); background: transparent; overflow: hidden;
+      clip-path: inset(0 0 0 0); opacity: 0; pointer-events: none;
+    }
+    .logo-title.glitch:hover::after {
+      opacity: 1; left: 3px;
+      text-shadow: -3px 0 rgba(192,57,43,0.75);
+      animation: animate-glitch 3s infinite linear alternate-reverse;
+    }
+    .logo-title.glitch:hover::before {
+      opacity: 1; left: -3px;
+      text-shadow: 3px 0 rgba(44,95,138,0.75);
+      animation: animate-glitch 2s infinite linear alternate-reverse;
     }
     .sidebar-logo .logo-sub {
       font-size: 11px; color: var(--ink-light); letter-spacing: 3px;
@@ -809,6 +821,20 @@
       animation: valueRise 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     }
     .value-panels.show .value-science { animation-delay: 0.12s; }
+    /* GlitchText 裁切动画(来自 React Bits) */
+    @keyframes animate-glitch {
+      0% { clip-path: inset(20% 0 50% 0); } 5% { clip-path: inset(10% 0 60% 0); }
+      10% { clip-path: inset(15% 0 55% 0); } 15% { clip-path: inset(25% 0 35% 0); }
+      20% { clip-path: inset(30% 0 40% 0); } 25% { clip-path: inset(40% 0 20% 0); }
+      30% { clip-path: inset(10% 0 60% 0); } 35% { clip-path: inset(15% 0 55% 0); }
+      40% { clip-path: inset(25% 0 35% 0); } 45% { clip-path: inset(30% 0 40% 0); }
+      50% { clip-path: inset(20% 0 50% 0); } 55% { clip-path: inset(10% 0 60% 0); }
+      60% { clip-path: inset(15% 0 55% 0); } 65% { clip-path: inset(25% 0 35% 0); }
+      70% { clip-path: inset(30% 0 40% 0); } 75% { clip-path: inset(40% 0 20% 0); }
+      80% { clip-path: inset(20% 0 50% 0); } 85% { clip-path: inset(10% 0 60% 0); }
+      90% { clip-path: inset(15% 0 55% 0); } 95% { clip-path: inset(25% 0 35% 0); }
+      100% { clip-path: inset(30% 0 40% 0); }
+    }
     @keyframes valueRise {
       from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -1122,7 +1148,7 @@
   <!-- ==================== 左侧侧边栏 18% ==================== -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-title"><span class="logo-particle" id="logoParticle" aria-label="徐霞客游记"><span class="lp-sr">徐霞客游记</span></span></div>
+      <div class="logo-title glitch" data-text="徐霞客游记">徐霞客游记</div>
       <div class="logo-sub">探山河奇景 · 追随霞客足迹</div>
     </div>
     <ul class="chapter-list">
@@ -3134,143 +3160,6 @@
       if (!inEarlyChapter()) { gotoEarlyChapter(); return; }
       if (overviewMode) exitOverview(); else enterOverview();
     });
-
-    // ===== ParticleText 标题粒子墨字(移植自 React Bits,原生 JS 版) =====
-    function mountParticleText() {
-      const container = document.getElementById('logoParticle');
-      if (!container) return;
-      const canvas = document.createElement('canvas');
-      container.insertBefore(canvas, container.firstChild);
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const opts = { text: '徐霞客游记', particleSize: 2.4, density: 2, color: '#1d0f08',
-        highlightColor: '#c0392b', scatter: 55, gatherDuration: 1500, stagger: 380,
-        pointerRepel: 16, repelRadius: 70, idleDrift: 0.22, fontWeight: 'bold' };
-      const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-      const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-      let particles = [], raf = null, gatherStart = 0, gathering = true, W = 0, H = 0, dpr = 1;
-      const pointer = { active: false, x: 0, y: 0, sx: 0, sy: 0 };
-
-      function sample() {
-        const rect = container.getBoundingClientRect();
-        W = Math.floor(rect.width); H = Math.floor(rect.height);
-        if (W <= 0 || H <= 0) return;
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.max(1, W * dpr); canvas.height = Math.max(1, H * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const cs = window.getComputedStyle(container.parentElement);
-        const family = cs.fontFamily || 'serif';
-        let size = parseFloat(cs.fontSize) || 26;
-        const off = document.createElement('canvas');
-        const octx = off.getContext('2d', { willReadFrequently: true });
-        // 逐字绘制以保留 letter-spacing 视觉
-        const chars = Array.from(opts.text);
-        const spacing = Math.min(parseFloat(cs.letterSpacing) || 6, 4);
-        const measure = () => {
-          octx.font = opts.fontWeight + ' ' + size + 'px ' + family;
-          let w = 0; const ws = [];
-          for (const ch of chars) { const cw = octx.measureText(ch).width; ws.push(cw); w += cw + spacing; }
-          return { w: w - spacing, ws };
-        };
-        let m = measure();
-        const maxW = W * 0.98;
-        if (m.w > maxW) { size = Math.max(14, size * (maxW / m.w)); m = measure(); }
-        const pad = 4;
-        off.width = Math.ceil(m.w + pad * 2); off.height = Math.ceil(size * 1.3 + pad * 2);
-        octx.font = opts.fontWeight + ' ' + size + 'px ' + family;
-        octx.textBaseline = 'middle';
-        octx.fillStyle = '#fff';
-        let cx0 = pad;
-        chars.forEach((ch, i) => { octx.fillText(ch, cx0, off.height / 2); cx0 += m.ws[i] + spacing; });
-        const img = octx.getImageData(0, 0, off.width, off.height);
-        const targets = [];
-        const step = Math.max(2, Math.floor(opts.density));
-        for (let y = 0; y < off.height; y += step)
-          for (let x = 0; x < off.width; x += step)
-            if (img.data[(y * off.width + x) * 4 + 3] > 40)
-              targets.push({ x: W / 2 - off.width / 2 + x, y: H / 2 - off.height / 2 + y });
-        const baseR = 44, baseG = 24, baseB = 16, hiR = 192, hiG = 57, hiB = 43;
-        particles = targets.map((t, i) => {
-          const seed = ((i * 9301 + 49297) % 233280) / 233280;
-          const depth = 0.45 + (((i * 233 + 97) % 1000) / 1000) * 0.9;
-          const blend = clamp(t.x / Math.max(1, W) + (seed - 0.5) * 0.35, 0, 1);
-          const r = Math.round(baseR + (hiR - baseR) * blend), g = Math.round(baseG + (hiG - baseG) * blend), b = Math.round(baseB + (hiB - baseB) * blend);
-          const ang = seed * Math.PI * 2, dist = reduced ? 0 : opts.scatter * (0.35 + depth * 0.75);
-          return {
-            tx: t.x, ty: t.y,
-            x: t.x + Math.cos(ang) * dist + (seed - 0.5) * opts.scatter * 0.45,
-            y: t.y + Math.sin(ang) * dist + (depth - 0.9) * opts.scatter * 0.45,
-            size: Math.max(0.7, opts.particleSize), color: 'rgb(' + r + ',' + g + ',' + b + ')',
-            seed, depth, delay: reduced ? 0 : seed * opts.stagger,
-          };
-        });
-        gatherStart = performance.now(); gathering = !reduced;
-        if (reduced) particles.forEach(p => { p.x = p.tx; p.y = p.ty; });
-        if (raf === null) raf = requestAnimationFrame(render);
-      }
-      function render(now) {
-        ctx.clearRect(0, 0, W, H);
-        pointer.sx += (pointer.x - pointer.sx) * 0.18;
-        pointer.sy += (pointer.y - pointer.sy) * 0.18;
-        let complete = true;
-        for (const p of particles) {
-          let bx = p.tx, by = p.ty, prog = 1;
-          if (gathering) {
-            const local = (now - gatherStart - p.delay) / Math.max(1, opts.gatherDuration);
-            prog = clamp(local, 0, 1);
-            const e = easeOutCubic(prog);
-            const dxc = p.tx - (p.sx0 === undefined ? p.x : p.sx0);
-            bx = (p.sx0 === undefined ? p.x : p.sx0) + dxc * e;
-            const dyc = p.ty - (p.sy0 === undefined ? p.y : p.sy0);
-            by = (p.sy0 === undefined ? p.y : p.sy0) + dyc * e;
-            if (p.sx0 === undefined) { p.sx0 = p.x; p.sy0 = p.y; }
-            if (prog < 1) complete = false;
-          } else if (!reduced && opts.idleDrift > 0) {
-            const dt = now * 0.001;
-            bx += Math.sin(dt * 0.9 + p.seed * 10) * opts.idleDrift * p.depth;
-            by += Math.cos(dt * 0.75 + p.depth * 10) * opts.idleDrift * p.depth;
-          }
-          if (pointer.active && !reduced) {
-            const dx = bx - pointer.sx, dy = by - pointer.sy;
-            const d = Math.hypot(dx, dy);
-            if (d > 0 && d < opts.repelRadius) {
-              const f = Math.pow(1 - d / opts.repelRadius, 2) * opts.pointerRepel;
-              bx += dx / d * f; by += dy / d * f;
-            }
-          }
-          p.x += (bx - p.x) * 0.22; p.y += (by - p.y) * 0.22;
-          ctx.globalAlpha = clamp(0.62 + prog * 0.38, 0, 1);
-          ctx.fillStyle = p.color;
-          ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-        }
-        ctx.globalAlpha = 1;
-        if (gathering && complete) gathering = false;
-        raf = requestAnimationFrame(render);
-      }
-      canvas.addEventListener('pointermove', ev => {
-        const r = canvas.getBoundingClientRect();
-        pointer.x = ev.clientX - r.left; pointer.y = ev.clientY - r.top;
-        pointer.active = true;
-      });
-      canvas.addEventListener('pointerleave', () => { pointer.active = false; });
-      canvas.addEventListener('pointerenter', () => {
-        if (gathering) return;
-        particles.forEach(p => { delete p.sx0; delete p.sy0; });
-        const ang = Math.random() * Math.PI * 2;
-        particles.forEach(p => {
-          const dist = opts.scatter * (0.35 + p.depth * 0.75);
-          p.x = p.tx + Math.cos(ang + p.seed * 6.28) * dist;
-          p.y = p.ty + Math.sin(ang + p.seed * 6.28) * dist;
-          delete p.sx0; delete p.sy0;
-        });
-        gatherStart = performance.now(); gathering = true;
-      });
-      window.addEventListener('resize', sample);
-      // 等侧边栏入场动画后再采样,字体就绪优先
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => setTimeout(sample, 750));
-      else setTimeout(sample, 900);
-    }
 
     // ===== 启动 =====
     initMap();
