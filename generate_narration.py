@@ -95,7 +95,7 @@ def main():
         else:
             # 后续段:以首段为参考克隆音色,保证九段音色一致
             wav = model.generate(
-                text=VOICE_DESC + text,
+                text=text,  # 纯净正文,无前缀
                 reference_wav_path=ref_wav,
                 cfg_value=2.0,
                 inference_timesteps=10,
