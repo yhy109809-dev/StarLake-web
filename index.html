@@ -1113,6 +1113,15 @@
     body.chapter-intro .info-panel { width: calc(100vw - var(--sidebar-w) - var(--map-w) + var(--map-w) / 5); min-width: 280px; }
     body.chapter-intro .info-panel .intro-text { font-size: 14px; line-height: 2.3; }
     body.chapter-intro .info-panel .panel-title { font-size: 19px; }
+    /* 模块一：右侧人物肖像缩至约 65%（保持比例不拉伸），在介绍区水平+垂直居中，避免撑满整行显得突兀 */
+    body.chapter-intro .ip-portrait {
+      width: 65%;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+      object-fit: contain;
+      aspect-ratio: auto;
+    }
 
     /* 第四章：隐藏右侧信息栏 */
     .info-panel.value-hidden { display: none; }
