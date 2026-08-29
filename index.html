@@ -1073,6 +1073,24 @@
     }
     .story-card .sc-continue:hover { transform: translateY(-2px); }
 
+    /* ===== 季节环境 canvas + 快速跳转按钮 ===== */
+    #seasonCanvas {
+      position: absolute; left: 0; right: 0; top: 0; bottom: 118px;
+      z-index: 6; pointer-events: none;
+    }
+    .fast-travel-btn {
+      position: absolute; right: 14px; bottom: 130px; z-index: 22;
+      display: none; align-items: center; gap: 6px; cursor: pointer;
+      padding: 7px 16px; border-radius: 16px; outline: none;
+      font-family: "KaiTi","STKaiti",serif; font-size: 12.5px; letter-spacing: 2px;
+      color: var(--ink-dark); background: rgba(252,246,232,0.82);
+      border: 1px solid var(--accent-gold); box-shadow: 0 3px 10px rgba(44,24,16,0.14);
+      backdrop-filter: blur(2px);
+      transition: transform 0.3s var(--ease-soft), background 0.3s ease, opacity 0.3s ease;
+    }
+    .fast-travel-btn:hover { transform: translateY(-2px); background: rgba(255,252,244,0.95); }
+    .fast-travel-btn:disabled { cursor: default; opacity: 0.7; transform: none; }
+
     /* 响应式 */
     @media (max-width: 960px) {
       .value-panels { flex-direction: column; gap: 18px; width: 86vw; }
@@ -1200,6 +1218,8 @@
           <div id="lateSvgHolder"></div>
         </div>
       </div>
+      <canvas id="seasonCanvas"></canvas>
+      <button class="fast-travel-btn" id="fastTravelBtn">前往下一节点 →</button>
       <div class="late-timeline" id="lateTimeline"></div>
       <button class="journey-start-btn" id="journeyStartBtn" title="开始旅程">开始旅程</button>
       <button class="journey-pause-btn" id="journeyPauseBtn" title="暂停/继续">⏸</button>
@@ -2223,14 +2243,14 @@
 
     // ===== 模块三：后期万里遐征(合并展示 + 时间轴) =====
     const LATE_NODES = [
-      { i: 0,  name: '江阴 · 启程', year: '1636' },
-      { i: 7,  name: '闽赣 · 转折', year: '1636' },
-      { i: 12, name: '湖南 · 衡州', year: '1637' },
-      { i: 15, name: '广西 · 桂林', year: '1637' },
-      { i: 19, name: '贵州 · 山行', year: '1638' },
-      { i: 22, name: '云南 · 东境', year: '1638' },
-      { i: 29, name: '滇西 · 大理', year: '1639' },
-      { i: 33, name: '腾冲 · 西极', year: '1639' },
+      { i: 0,  name: '江阴 · 启程', year: '1636', month: 9,  season: 'autumn', environment: 'river' },
+      { i: 7,  name: '闽赣 · 转折', year: '1636', month: 11, season: 'winter', environment: 'mountain' },
+      { i: 12, name: '湖南 · 衡州', year: '1637', month: 2,  season: 'winter', environment: 'river' },
+      { i: 15, name: '广西 · 桂林', year: '1637', month: 4,  season: 'spring', environment: 'karst' },
+      { i: 19, name: '贵州 · 山行', year: '1638', month: 3,  season: 'spring', environment: 'mountain' },
+      { i: 22, name: '云南 · 东境', year: '1638', month: 10, season: 'autumn', environment: 'plateau' },
+      { i: 29, name: '滇西 · 大理', year: '1639', month: 4,  season: 'spring', environment: 'lake' },
+      { i: 33, name: '腾冲 · 西极', year: '1639', month: 12, season: 'winter', environment: 'mountain' },
     ];
     let lateMounted = false;
     let lateEchoGroup = null;
@@ -2259,6 +2279,8 @@
         tl.appendChild(b);
       });
       initJourney();
+      startSeasonLoop();
+      updateFastBtn();
     }
     function highlightLateDot(i, name) {
       const svg = document.querySelector('#lateSvgHolder svg');
@@ -2442,6 +2464,7 @@
       const p2 = JOURNEY.pathEl.getPointAtLength(Math.min(JOURNEY.total, JOURNEY.total * progress + 1.2));
       JOURNEY.charEl.setAttribute('transform', `translate(${p.x.toFixed(2)},${p.y.toFixed(2)})`);
       JOURNEY.flipEl.style.transform = (p2.x < p.x) ? 'scaleX(-1)' : 'scaleX(1)';
+      JOURNEY.charPos = { x: p.x, y: p.y };
     }
 
     function updateTimeline() {
@@ -2454,6 +2477,7 @@
           : (!nd.triggered && JOURNEY.nodes.findIndex(x => !x.triggered) === k);
         el.classList.toggle('current', !!isCurrent);
       });
+      updateFastBtn();
     }
 
     function applyProgress() {
@@ -2467,7 +2491,32 @@
       if (!JOURNEY.playing) return;
       const dt = Math.min(0.05, (t - JOURNEY.lastT) / 1000 || 0);
       JOURNEY.lastT = t;
-      JOURNEY.progress = Math.min(1, JOURNEY.progress + XINAN_SPEED * dt);
+      if (FT.active && FT.target) {
+        // 快速前往:平滑加速→匀速→接近目标减速→精准停靠
+        const remain = FT.target.progress - JOURNEY.progress;
+        if (remain <= 0) {
+          JOURNEY.progress = FT.target.progress;
+          applyProgress();
+          FT.active = false; FT.mul = 1;
+          updateFastBtn();
+        } else {
+          FT.mul += (4 - FT.mul) * Math.min(1, dt * 3);
+          if (remain < 0.012) FT.mul = Math.max(1, FT.mul - dt * 14);
+          const step = XINAN_SPEED * FT.mul * dt;
+          if (step >= remain) {
+            JOURNEY.progress = FT.target.progress;
+            applyProgress();
+            FT.active = false; FT.mul = 1;
+            updateFastBtn();
+            const nxtNow = JOURNEY.nodes.find(n => !n.triggered);
+            if (nxtNow) { triggerNode(nxtNow); return; }
+          } else {
+            JOURNEY.progress += step;
+          }
+        }
+      } else {
+        JOURNEY.progress = Math.min(1, JOURNEY.progress + XINAN_SPEED * dt);
+      }
       applyProgress();
       const nxt = JOURNEY.nodes.find(n => !n.triggered);
       if (nxt && JOURNEY.progress >= nxt.progress) { triggerNode(nxt); return; }
@@ -2650,6 +2699,286 @@
       JOURNEY.playing = false;
     }
 
+    // ===== SeasonEnvironment 四季氛围引擎(单 canvas 自绘,克制/低饱和/避让人物) =====
+    const FT = { active: false, target: null, mul: 1 };
+    function fastTravelToNext() {
+      if (!JOURNEY.started || JOURNEY.finished || JOURNEY.atNode || FT.active) return;
+      const nxt = JOURNEY.nodes.find(n => !n.triggered);
+      if (!nxt) return;
+      if (JOURNEY.progress >= nxt.progress - 0.0001) { triggerNode(nxt); return; }
+      FT.active = true; FT.target = nxt; FT.mul = 1;
+      if (!JOURNEY.playing) { JOURNEY.playing = true; resumeEngine(); }
+      updateFastBtn();
+    }
+    function updateFastBtn() {
+      const btn = document.getElementById('fastTravelBtn');
+      if (!btn) return;
+      const nxt = JOURNEY.nodes.find(n => !n.triggered);
+      if (FT.active) {
+        btn.style.display = 'flex'; btn.disabled = true;
+        btn.textContent = '正在前往 ' + (FT.target ? FT.target.name.replace(/ · /g, '') : '') + ' ……';
+        btn.style.opacity = '0.75';
+      } else if (JOURNEY.started && !JOURNEY.finished && !JOURNEY.atNode && nxt) {
+        btn.style.display = 'flex'; btn.disabled = false;
+        btn.textContent = '前往 ' + nxt.name.replace(/ · /g, '') + ' →';
+        btn.style.opacity = '1';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+
+    const SeasonEnv = {
+      canvas: null, ctx: null, w: 0, h: 0, dpr: 1, raf: null, lastT: 0, t: 0,
+      petals: [], leaves: [], snow: [], canopies: [], wisps: [],
+      svg: null, vb: null,
+    };
+    function seasonResize() {
+      const stage = document.querySelector('.late-stage');
+      const cv = SeasonEnv.canvas;
+      if (!stage || !cv) return;
+      const r = stage.getBoundingClientRect();
+      SeasonEnv.dpr = Math.min(2, window.devicePixelRatio || 1);
+      SeasonEnv.w = r.width; SeasonEnv.h = r.height;
+      cv.width = Math.max(1, r.width * SeasonEnv.dpr);
+      cv.height = Math.max(1, r.height * SeasonEnv.dpr);
+      cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+      SeasonEnv.ctx.setTransform(SeasonEnv.dpr, 0, 0, SeasonEnv.dpr, 0, 0);
+    }
+    function seasonInit() {
+      if (SeasonEnv.canvas) return;
+      SeasonEnv.canvas = document.getElementById('seasonCanvas');
+      SeasonEnv.ctx = SeasonEnv.canvas.getContext('2d');
+      SeasonEnv.svg = document.querySelector('#lateSvgHolder svg');
+      const sv = document.querySelector('#lateSvgHolder svg');
+      if (sv) SeasonEnv.vb = sv.viewBox.baseVal;
+      const scale = SeasonEnv.w < 900 ? 0.7 : 1;
+      const R = SeasonEnv.seededRand;
+      // 春:花瓣 26(远景/中景/前景三层景深)
+      const petalColors = ['#eec3cd', '#f6e9e4', '#efb9c5', '#f3d7d0'];
+      for (let i = 0; i < Math.round(26 * scale); i++) {
+        const layer = i % 3; // 0远 1中 2前
+        SeasonEnv.petals.push({
+          x: R() , y: R(), size: 2.5 + R() * 3.5 + layer * 0.8,
+          fall: (13 + R() * 17) * (layer === 2 ? 1.25 : layer === 0 ? 0.75 : 1),
+          swayAmp: 8 + R() * 18, swayFreq: 0.35 + R() * 0.8, phase: R() * 6.28,
+          rot: R() * 6.28, rotSpd: (R() - 0.5) * 3.4,
+          alpha: (0.3 + R() * 0.42) * (layer === 0 ? 0.45 : layer === 2 ? 1 : 0.75),
+          color: petalColors[i % petalColors.length], layer,
+        });
+      }
+      // 夏:树冠 4 组 + 微风叶 5
+      const canopyPos = [[0.09, 0.97], [0.17, 0.99], [0.88, 0.98], [0.95, 0.96]];
+      for (const [px, py] of canopyPos) {
+        const blobs = [];
+        const nb = 4 + Math.floor(R() * 2);
+        for (let b = 0; b < nb; b++) blobs.push({ dx: (R() - 0.5) * 66, dy: -R() * 34, r: 16 + R() * 20 });
+        SeasonEnv.canopies.push({ px, py, blobs, phase: R() * 6.28 });
+      }
+      for (let i = 0; i < Math.round(5 * scale); i++) {
+        SeasonEnv.wisps.push({ x: R(), y: 0.15 + R() * 0.7, spd: 26 + R() * 20, len: 40 + R() * 50, alpha: 0.06 + R() * 0.06 });
+      }
+      // 秋:落叶 26(枯黄/金黄/棕/淡橙,低饱和)
+      const leafColors = ['#c8a44e', '#b07a3a', '#a67b4f', '#d9b96a', '#93704a'];
+      for (let i = 0; i < Math.round(26 * scale); i++) {
+        const layer = i % 3;
+        SeasonEnv.leaves.push({
+          x: R(), y: R(), size: 3.5 + R() * 4 + layer * 0.7,
+          fall: (20 + R() * 22) * (layer === 2 ? 1.25 : layer === 0 ? 0.75 : 1),
+          swayAmp: 10 + R() * 24, swayFreq: 0.4 + R() * 0.9, phase: R() * 6.28,
+          rot: R() * 6.28, rotSpd: (R() - 0.5) * 5,
+          alpha: (0.32 + R() * 0.4) * (layer === 0 ? 0.45 : layer === 2 ? 1 : 0.75),
+          color: leafColors[i % leafColors.length],
+        });
+      }
+      // 冬:雪 32(小而缓,部分微晕)
+      for (let i = 0; i < Math.round(32 * scale); i++) {
+        const layer = i % 3;
+        SeasonEnv.snow.push({
+          x: R(), y: R(), size: 0.6 + R() * 2.2,
+          fall: (8 + R() * 14) * (layer === 2 ? 1.2 : layer === 0 ? 0.7 : 1),
+          driftAmp: 4 + R() * 10, driftFreq: 0.2 + R() * 0.5, phase: R() * 6.28,
+          alpha: (0.15 + R() * 0.55) * (layer === 0 ? 0.5 : 1),
+          hex: i % 6 === 0,
+        });
+      }
+    }
+    SeasonEnv.seededRand = (seed => () => (seed = (seed * 16807) % 2147483647) / 2147483647)(20260829);
+
+    function seasonStateIntensities() {
+      const ns = JOURNEY.nodes;
+      const ints = { spring: 0, summer: 0, autumn: 0, winter: 0 };
+      if (!ns.length || !JOURNEY.started) return ints;
+      let k = 0;
+      while (k < ns.length - 1 && JOURNEY.progress > ns[k + 1].progress) k++;
+      const a = ns[k], b = ns[Math.min(k + 1, ns.length - 1)];
+      ints[a.season] = (ints[a.season] || 0) + 1;
+      const span = b.progress - a.progress;
+      if (b !== a && span > 0 && a.season !== b.season) {
+        const t = Math.min(1, Math.max(0, (JOURNEY.progress - a.progress) / span));
+        const W = 0.35;
+        if (t > 1 - W) {
+          const mix = (t - (1 - W)) / W;
+          const e = mix * mix * (3 - 2 * mix);
+          ints[a.season] = Math.max(0, 1 - e);
+          ints[b.season] = (ints[b.season] || 0) + e;
+        }
+      }
+      return ints;
+    }
+
+    function seasonLoop(t) {
+      SeasonEnv.raf = null;
+      const cv = SeasonEnv.canvas;
+      if (!cv || !cv.isConnected) return;
+      const ctx = SeasonEnv.ctx;
+      if (!SeasonEnv.w) seasonResize();
+      const dt = Math.min(0.06, (t - SeasonEnv.lastT) / 1000 || 0.016);
+      SeasonEnv.lastT = t; SeasonEnv.t += dt;
+      const W = SeasonEnv.w, H = SeasonEnv.h, T = SeasonEnv.t;
+      const ints = seasonStateIntensities();
+      const maxI = Math.max(ints.spring, ints.summer, ints.autumn, ints.winter);
+      ctx.clearRect(0, 0, W, H);
+      if (maxI < 0.01) { SeasonEnv.raf = requestAnimationFrame(seasonLoop); return; }
+      // 人物像素位置(花瓣/落叶避让)
+      let chx = -999, chy = -999;
+      if (JOURNEY.charPos && SeasonEnv.svg) {
+        const holder = document.querySelector('.late-map-holder');
+        if (holder) {
+          const hr = holder.getBoundingClientRect(), cr = cv.getBoundingClientRect();
+          chx = hr.left - cr.left + (JOURNEY.charPos.x - SeasonEnv.vb.x) / SeasonEnv.vb.width * hr.width;
+          chy = hr.top - cr.top + (JOURNEY.charPos.y - SeasonEnv.vb.y) / SeasonEnv.vb.height * hr.height;
+        }
+      }
+      const avoid = (x, y, a) => {
+        const d = Math.hypot(x - chx, y - chy);
+        const f = Math.min(1, Math.max(0, (d - 16) / 40));
+        return a * f * f;
+      };
+      // 春:花瓣
+      if (ints.spring > 0.01) {
+        ctx.save();
+        for (const p of SeasonEnv.petals) {
+          p.y += p.fall * dt / H;
+          p.x += Math.sin(T * p.swayFreq * 2 + p.phase) * p.swayAmp * dt / W * 0.55 + 3.2 * dt / W;
+          p.rot += p.rotSpd * dt;
+          if (p.y > 1.04) { p.y = -0.04; p.x = R2(); }
+          if (p.x > 1.05) p.x = -0.05;
+          let a = p.alpha * ints.spring;
+          const px = p.x * W, py = p.y * H;
+          a = avoid(px, py, a);
+          if (a < 0.01) continue;
+          ctx.globalAlpha = a;
+          ctx.fillStyle = p.color;
+          ctx.translate(px, py); ctx.rotate(p.rot);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size, p.size * 0.62, 0, 0, 6.29);
+          ctx.fill();
+          ctx.setTransform(SeasonEnv.dpr, 0, 0, SeasonEnv.dpr, 0, 0);
+        }
+        ctx.restore();
+      }
+      // 夏:树冠(地图底部两角,轻微摇摆) + 微风叶
+      if (ints.summer > 0.01) {
+        for (const cp of SeasonEnv.canopies) {
+          const sway = Math.sin(T * 0.55 + cp.phase) * 3.2;
+          const a = 0.5 * ints.summer;
+          for (const b of cp.blobs) {
+            ctx.globalAlpha = a;
+            ctx.fillStyle = 'rgba(62,96,58,1)';
+            ctx.beginPath();
+            ctx.arc(cp.px * W + b.dx + sway, cp.py * H + b.dy, b.r, 0, 6.29);
+            ctx.fill();
+          }
+          ctx.globalAlpha = a * 0.5;
+          ctx.fillStyle = 'rgba(86,124,74,1)';
+          for (const b of cp.blobs) {
+            ctx.beginPath();
+            ctx.arc(cp.px * W + b.dx * 0.7 + sway * 1.3, cp.py * H + b.dy - b.r * 0.35, b.r * 0.72, 0, 6.29);
+            ctx.fill();
+          }
+        }
+        for (const wsp of SeasonEnv.wisps) {
+          wsp.x -= wsp.spd * dt / W;
+          if (wsp.x < -0.15) { wsp.x = 1.1; wsp.y = 0.15 + Math.random() * 0.7; }
+          ctx.globalAlpha = wsp.alpha * ints.summer;
+          ctx.strokeStyle = 'rgba(110,140,100,1)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(wsp.x * W, wsp.y * H);
+          ctx.quadraticCurveTo(wsp.x * W + wsp.len * 0.5, wsp.y * H - 5, wsp.x * W + wsp.len, wsp.y * H);
+          ctx.stroke();
+        }
+      }
+      // 秋:落叶
+      if (ints.autumn > 0.01) {
+        for (const p of SeasonEnv.leaves) {
+          p.y += p.fall * dt / H;
+          p.x += Math.sin(T * p.swayFreq * 2 + p.phase) * p.swayAmp * dt / W * 0.6 + 4.5 * dt / W;
+          p.rot += p.rotSpd * dt;
+          if (p.y > 1.04) { p.y = -0.04; p.x = R2(); }
+          if (p.x > 1.06) p.x = -0.06;
+          let a = p.alpha * ints.autumn;
+          const px = p.x * W, py = p.y * H;
+          a = avoid(px, py, a);
+          if (a < 0.01) continue;
+          ctx.globalAlpha = a;
+          ctx.fillStyle = p.color;
+          ctx.translate(px, py); ctx.rotate(p.rot);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, 6.29);
+          ctx.fill();
+          ctx.setTransform(SeasonEnv.dpr, 0, 0, SeasonEnv.dpr, 0, 0);
+        }
+      }
+      // 冬:轻雪 + 冷色环境层
+      if (ints.winter > 0.01) {
+        for (const s of SeasonEnv.snow) {
+          s.y += s.fall * dt / H;
+          s.x += Math.sin(T * s.driftFreq * 2 + s.phase) * s.driftAmp * dt / W;
+          if (s.y > 1.03) { s.y = -0.03; s.x = R2(); }
+          let a = s.alpha * ints.winter;
+          const px = s.x * W, py = s.y * H;
+          a = avoid(px, py, a);
+          if (a < 0.01) continue;
+          ctx.globalAlpha = a;
+          if (s.hex) {
+            ctx.strokeStyle = 'rgba(235,242,250,1)';
+            ctx.lineWidth = 0.7;
+            ctx.beginPath();
+            for (let k = 0; k < 3; k++) {
+              const ang = k * Math.PI / 3;
+              ctx.moveTo(px - Math.cos(ang) * s.size * 2.2, py - Math.sin(ang) * s.size * 2.2);
+              ctx.lineTo(px + Math.cos(ang) * s.size * 2.2, py + Math.sin(ang) * s.size * 2.2);
+            }
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = 'rgba(244,248,253,1)';
+            ctx.beginPath();
+            ctx.arc(px, py, s.size, 0, 6.29);
+            ctx.fill();
+          }
+        }
+        ctx.globalAlpha = 0.07 * ints.winter;
+        ctx.fillStyle = 'rgb(150,180,225)';
+        ctx.fillRect(0, 0, W, H);
+      }
+      ctx.globalAlpha = 1;
+      SeasonEnv.raf = requestAnimationFrame(seasonLoop);
+    }
+    function R2() { return Math.random(); }
+    function startSeasonLoop() {
+      if (!SeasonEnv.canvas) seasonInit();
+      seasonResize();
+      if (SeasonEnv.raf === null) {
+        SeasonEnv.lastT = performance.now();
+        SeasonEnv.raf = requestAnimationFrame(seasonLoop);
+      }
+    }
+    function stopSeasonLoop() {
+      if (SeasonEnv.raf) { cancelAnimationFrame(SeasonEnv.raf); SeasonEnv.raf = null; }
+    }
+    window.addEventListener('resize', () => { if (SeasonEnv.raf !== null) seasonResize(); });
+
     // ===== 模块三结束标记 =====
     function initRouteSystem() {
       showRoute(routeIndex);
@@ -2688,6 +3017,7 @@
         closePointPanel();
         document.body.classList.remove('chapter-late'); // 离开模块三时复位布局
         pauseJourneyAll();
+        stopSeasonLoop();
         // 离开模块二时停用查看器滚轮缩放，避免滚动事件残留
         if (earlyMap) { earlyMap.scrollWheelZoom.disable(); }
 
