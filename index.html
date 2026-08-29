@@ -92,18 +92,58 @@
     .deco-layer .deco {
       position: absolute; user-select: none; -webkit-user-drag: none;
     }
+    /* 左下角霞客立像：multiply 溶入宣纸底色；mask 顶部/两侧深羽化，消除图片暗边与矩形边界 */
     .deco-layer .deco-figure-left {
-      left: 0; bottom: 0; width: clamp(140px, 17vw, 320px); opacity: 0.74;
+      left: 0; bottom: 0; width: clamp(140px, 17vw, 320px); opacity: 0.72;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 36%),
+        linear-gradient(90deg, transparent 0%, #000 20%, #000 62%, transparent 96%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 36%),
+        linear-gradient(90deg, transparent 0%, #000 20%, #000 62%, transparent 96%);
+      mask-composite: intersect;
     }
+    /* 底部主雾山：multiply 融纸 + 顶部/左右羽化，消除矩形拼接边界 */
     .deco-layer .deco-mist-bottom {
       left: 50%; bottom: 0; transform: translateX(-50%);
-      width: min(88vw, 1400px); opacity: 0.32;
+      width: min(88vw, 1400px); opacity: 0.26;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 32%),
+        linear-gradient(90deg, transparent 0%, #000 12%, #000 86%, transparent 100%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 32%),
+        linear-gradient(90deg, transparent 0%, #000 12%, #000 86%, transparent 100%);
+      mask-composite: intersect;
     }
+    /* 左下雾山：multiply 融纸 + 顶部/右侧羽化 */
     .deco-layer .deco-mist-bottom-left {
-      left: 0; bottom: 0; width: min(46vw, 560px); opacity: 0.36;
+      left: 0; bottom: 0; width: min(46vw, 560px); opacity: 0.3;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 32%),
+        linear-gradient(90deg, #000 0%, #000 64%, transparent 100%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 32%),
+        linear-gradient(90deg, #000 0%, #000 64%, transparent 100%);
+      mask-composite: intersect;
     }
+    /* 右下远山：multiply 融纸 + 顶部/左侧羽化（加宽画幅使山影与中段云雾衔接，避免雾-空-山的竖向条带） */
     .deco-layer .deco-mountains-right {
-      right: 0; bottom: 0; width: min(30vw, 420px); opacity: 0.48;
+      right: 0; bottom: 0; width: min(32vw, 480px); opacity: 0.4;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 40%),
+        linear-gradient(90deg, transparent 0%, #000 26%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 40%),
+        linear-gradient(90deg, transparent 0%, #000 26%);
+      mask-composite: intersect;
     }
 
     /* ==========================================
@@ -112,14 +152,13 @@
     .sidebar {
       width: var(--sidebar-w); min-width: 200px; height: 100vh;
       background:
-        /* 霞客立像（提取自长卷，multiply 融入宣纸底色，位于所有内容之下） */
-        url("assets/figure-left.png") no-repeat left bottom / 100% auto,
+        /* 纸色渐变：下部渐隐为透明，让 deco 层的霞客立像从底部自然透出 */
         linear-gradient(180deg,
-          rgba(254,252,248,0.95) 0%,
-          rgba(245,236,220,0.92) 40%,
-          rgba(235,221,196,0.9) 100%
+          rgba(254,252,248,0.96) 0%,
+          rgba(247,238,221,0.93) 42%,
+          rgba(241,228,204,0.55) 62%,
+          rgba(238,224,198,0) 84%
         );
-      background-blend-mode: multiply, normal;
       border-right: 1px solid var(--accent-gold);
       display: flex; flex-direction: column; align-items: center;
       padding: 24px 16px 16px;
@@ -338,10 +377,20 @@
     }
     .leaflet-control-attribution { display: none !important; }
 
-    /* 地图控件（右侧垂直） */
+    /* 地图控件（右侧垂直）：默认隐藏，仅模块二进入时由 JS 开显示开关 */
     .map-controls {
       position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-      display: flex; flex-direction: column; gap: 10px; z-index: 999;
+      display: none; flex-direction: column; gap: 10px; z-index: 999;
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-soft);
+    }
+    .map-controls.show {
+      display: flex;
+      opacity: 1;
+    }
+    body.chapter-early .map-controls.show {
+      display: flex;
+      opacity: 1;
     }
     .map-ctrl-btn {
       width: 38px; height: 38px; border-radius: 50%;
@@ -395,13 +444,21 @@
     .info-panel {
       width: var(--card-w); min-width: 180px; height: 100vh;
       background:
+        /* 纸色纱罩：将远山画芯向左、向上羽化，消除竖向色界与图片边缘 */
+        linear-gradient(90deg,
+          rgba(250, 244, 232, 0.9) 0%,
+          rgba(250, 244, 232, 0.5) 28%,
+          rgba(250, 244, 232, 0) 58%),
+        linear-gradient(0deg,
+          rgba(250, 244, 232, 0.55) 0%,
+          rgba(250, 244, 232, 0) 22%),
         /* 远山淡影（提取自长卷右缘，位于所有内容之下） */
-        url("assets/mountains-right.png") no-repeat right bottom / 100% auto,
+        url("mountains-right.png") no-repeat right bottom / 100% auto,
         linear-gradient(180deg,
           rgba(254,252,248,0.95) 0%,
           rgba(245,236,220,0.92) 100%
         );
-      background-blend-mode: multiply, normal;
+      background-blend-mode: normal, normal, multiply, normal;
       border-left: 1px solid var(--accent-gold);
       display: flex; flex-direction: column;
       padding: 30px 18px 20px;
@@ -523,13 +580,37 @@
         rgba(247,241,227,0.42) 36%,
         transparent 100%);
     }
-    /* 长卷底部：水墨山峦云雾（提取自参考长卷，左右对置、中段留白保持干净） */
+    /* 长卷底部：水墨山峦云雾（提取自参考长卷，左右对置、中段留白保持干净）
+       伪元素缩窄至图片画幅，mask 全部基于画幅自身坐标向内羽化，图片边缘永不落硬边 */
     .bottom-scape::before {
-      content: ""; position: absolute; inset: 0; pointer-events: none;
+      content: ""; position: absolute; left: 0; bottom: 0; width: 42%; height: 100%; pointer-events: none;
       background:
-        url("assets/mist-bottom.png") no-repeat right bottom / 46% 100%,
-        url("assets/mist-bottom-left.png") no-repeat left bottom / 42% 100%;
-      opacity: 0.44;
+        url("mist-bottom-left.png") no-repeat left bottom / 100% 100%;
+      opacity: 0.4;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 30%),
+        linear-gradient(90deg, #000 0%, #000 52%, transparent 96%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 30%),
+        linear-gradient(90deg, #000 0%, #000 52%, transparent 96%);
+      mask-composite: intersect;
+    }
+    .bottom-scape::after {
+      content: ""; position: absolute; right: 0; bottom: 0; width: 46%; height: 100%; pointer-events: none;
+      background:
+        url("mist-bottom.png") no-repeat right bottom / 100% 100%;
+      opacity: 0.4;
+      mix-blend-mode: multiply;
+      -webkit-mask-image:
+        linear-gradient(180deg, transparent 0%, #000 30%),
+        linear-gradient(90deg, transparent 0%, #000 42%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(180deg, transparent 0%, #000 30%),
+        linear-gradient(90deg, transparent 0%, #000 42%);
+      mask-composite: intersect;
     }
     /* 山峦层 */
     .mountain-bg { position: absolute; bottom: 0; left: 0; right: 0; }
@@ -825,13 +906,17 @@
     /* ==========================================
        第四章：文学与科学价值
        ========================================== */
-    /* 价值章节容器：覆盖在地图之上，居中放置两张卡片 */
+    /* 价值章节容器：覆盖在地图之上，Grid 两列等宽，等高；容器宽度相对 map-area 自适应 */
     .value-panels {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      display: flex; flex-direction: row; gap: 40px;
-      align-items: stretch; justify-content: center;
+      width: min(92%, 1600px);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(32px, 4vw, 64px);
+      align-items: stretch;
+      justify-items: stretch;
       z-index: 8;
       pointer-events: none;
       opacity: 0; visibility: hidden;
@@ -864,13 +949,15 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* 单张卡片 */
+    /* 单张卡片：Grid 1fr 自动等宽，等高对齐；高度由内容决定，底部只保留合理呼吸空间 */
     .value-card {
-      width: 360px; max-width: 32vw;
-      padding: 34px 30px 28px;
+      width: 100%;
+      padding: clamp(28px, 3vw, 42px) clamp(24px, 2.6vw, 40px) clamp(26px, 2.6vw, 40px);
+      box-sizing: border-box;
+      display: flex; flex-direction: column;
       background: linear-gradient(135deg,
-        rgba(252, 246, 232, 0.86) 0%,
-        rgba(245, 236, 220, 0.80) 100%
+        rgba(252, 246, 232, 0.88) 0%,
+        rgba(245, 236, 220, 0.82) 100%
       );
       border: 1px solid var(--accent-gold);
       border-radius: 6px;
@@ -901,6 +988,44 @@
       border-color: rgba(196, 169, 125, 0.55);
     }
 
+    /* ===== BorderGlow 移植（仅第四模块两卡片）：边缘金棕流光 =====
+       思路来自 React Bits BorderGlow：JS 实时更新 --edge-proximity（贴边程度）
+       与 --cursor-angle（鼠标方位角），conic-gradient 让亮段始终指向鼠标；
+       mask 环形遮罩只保留约 1.6px 边框环，圆角 inherit 自动贴合，不触碰卡片内部。 */
+    .value-card {
+      --edge-proximity: 0;      /* 0-100：鼠标贴近边缘程度（JS 计算） */
+      --cursor-angle: 0deg;     /* 鼠标相对卡片中心的方位角（JS 计算） */
+      --glow-sensitivity: 32;   /* 越过该阈值才开始出现光晕 */
+    }
+    .value-card::after {
+      content: ""; position: absolute; inset: -1px;
+      border-radius: inherit; padding: 1.6px;
+      pointer-events: none; z-index: 2;
+      /* 暗金→铜金低饱和光带：中心朝向鼠标，两侧对称柔和衰减（亮芯为米金高光） */
+      background: conic-gradient(from var(--cursor-angle) at 50% 50%,
+        rgba(255, 243, 210, 1) 0%,
+        rgba(226, 193, 128, 0.6) 14%,
+        rgba(196, 160, 95, 0.18) 30%,
+        rgba(196, 160, 95, 0.18) 70%,
+        rgba(226, 193, 128, 0.6) 86%,
+        rgba(255, 243, 210, 1) 100%);
+      filter: drop-shadow(0 0 7px rgba(214, 178, 115, 0.7))
+              drop-shadow(0 0 20px rgba(214, 178, 115, 0.38));
+      /* 环形遮罩：外环减内环 = 仅边框线发光 */
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.7s ease; /* 鼠标离开：0.7s 自然淡出 */
+    }
+    /* 鼠标悬停（JS 加 glow-active 类）或入场扫光时：亮度由 --edge-proximity 驱动 */
+    .value-card.glow-active::after,
+    .value-card.glow-sweep::after {
+      opacity: calc((var(--edge-proximity) - var(--glow-sensitivity)) / (100 - var(--glow-sensitivity)));
+      transition: opacity 0.45s ease-out;
+    }
+
     /* 四角传统角花 */
     .value-corner {
       position: absolute; width: 16px; height: 16px;
@@ -925,12 +1050,12 @@
       color: var(--ink-dark);
       text-align: center;
       letter-spacing: 10px; text-indent: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     /* 标题下装饰分隔线 */
     .value-line {
-      width: 55%; height: 1px; margin: 0 auto 18px;
+      width: 55%; height: 1px; margin: 0 auto 14px;
       position: relative;
       background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
     }
@@ -948,20 +1073,41 @@
       font-family: "KaiTi", "STKaiti", "Noto Serif SC", serif;
       font-size: 14px; color: var(--ink-mid);
       text-align: center; letter-spacing: 3px;
-      margin-bottom: 16px; font-style: italic;
+      margin-bottom: 18px; font-style: italic;
     }
 
-    /* 正文 */
+    /* 正文区（flex 弹性分配空间，Grid 让两卡等高） */
     .value-card .value-text {
-      font-size: 14px; line-height: 2.1;
+      font-size: 14px; line-height: 2.0;
       color: var(--ink-mid); letter-spacing: 1px;
-      text-indent: 2em; text-align: justify;
+      text-align: justify;
+      margin: 0;
+    }
+    /* 分点条目：粗体小标题 + 说明段落 */
+    .value-card .value-text .v-h {
+      display: block;
+      font-family: "KaiTi","STKaiti","Noto Serif SC",serif;
+      font-weight: bold;
+      color: var(--ink-dark);
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      margin: 10px 0 6px;
+      text-indent: 0;
+    }
+    .value-card .value-text .v-h:first-child { margin-top: 0; }
+    .value-card .value-text .v-p {
+      display: block;
+      text-indent: 2em;
+      margin-bottom: 4px;
     }
 
-    /* 第四章：进一步淡化地图底图 */
+    /* 第四章：进一步淡化地图底图，同时扩宽地图容器填满右侧空间（info-panel 已隐藏） */
     .map-area.chapter-value .leaflet-tile-pane {
       filter: sepia(0.4) saturate(0.25) brightness(1.10) contrast(0.72) hue-rotate(350deg) opacity(0.55);
     }
+    /* 第四模块：让地图区扩展到整个右侧（除了左侧 sidebar），充分利用原 info-panel 的空白空间 */
+    body.chapter-value .map-area { width: calc(100vw - var(--sidebar-w)); }
+    body.chapter-value .bottom-scape { width: 100%; left: 0; }
     /* 模块一(背景介绍):地图区右收1/5,右侧扩为介绍空间 */
     body.chapter-intro .map-area { width: calc(var(--map-w) - var(--map-w) / 5); }
     body.chapter-intro .info-panel { width: calc(100vw - var(--sidebar-w) - var(--map-w) + var(--map-w) / 5); min-width: 280px; }
@@ -1159,26 +1305,29 @@
     .fast-travel-btn:hover { transform: translateY(-2px); background: rgba(255,252,244,0.95); }
     .fast-travel-btn:disabled { cursor: default; opacity: 0.7; transform: none; }
 
-    /* 响应式 */
+    /* 响应式：窄屏两卡竖排仍保持等宽等高 */
     @media (max-width: 960px) {
-      .value-panels { flex-direction: column; gap: 18px; width: 86vw; }
+      .value-panels { grid-template-columns: 1fr; gap: 18px; width: 86vw; }
       .value-card {
-        width: 100%; max-width: none; padding: 22px 18px;
+        padding: 22px 18px;
       }
       .value-card .value-title { font-size: 24px; letter-spacing: 6px; }
       .value-card .value-sub { font-size: 13px; }
       .value-card .value-text { font-size: 13px; line-height: 1.95; }
+      /* 窄屏下（第三章）地图区保持原宽，不要被强制占满到视口右缘 */
+      body.chapter-value .map-area { width: var(--map-w); }
+      body.chapter-value .map-controls { right: 16px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ==================== 水墨装饰图片（GitHub 图床） ==================== -->
+  <!-- ==================== 水墨装饰图片（本地 assets，原图托管于 GitHub 图床 yhy109809-dev/xu-xiake-images） ==================== -->
   <div class="deco-layer">
-    <img class="deco deco-mist-bottom-left" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mist-bottom-left.png" alt="左下雾气">
-    <img class="deco deco-mist-bottom" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mist-bottom.png" alt="底部雾气">
-    <img class="deco deco-mountains-right" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/mountains-right.png" alt="右侧远山">
-    <img class="deco deco-figure-left" src="https://cdn.jsdelivr.net/gh/yhy109809-dev/xu-xiake-images@main/figure-left.png" alt="山水人物剪影">
+    <img class="deco deco-mist-bottom-left" src="mist-bottom-left.png" alt="左下雾气">
+    <img class="deco deco-mist-bottom" src="mist-bottom.png" alt="底部雾气">
+    <img class="deco deco-mountains-right" src="mountains-right.png" alt="右侧远山">
+    <img class="deco deco-figure-left" src="figure-left.png" alt="山水人物剪影">
   </div>
 
   <!-- ==================== 左侧侧边栏 18% ==================== -->
@@ -1245,7 +1394,21 @@
         <div class="value-line"></div>
         <div class="value-sub">以游记写山河，以文字见天地</div>
         <p class="value-text">
-          《徐霞客游记》不仅是一部地理考察著作，也是一部具有独特文学价值的游记作品。徐霞客以亲身经历为基础，将山川地貌、风土人情与个人感受融入文字之中，形成了细腻、生动而富有感染力的山水描写。
+          <span class="v-h">① 开创独特山水游记文学</span>
+          <span class="v-p">《徐霞客游记》突破传统游记只描写风景的模式，将个人经历、自然观察与文学表达结合起来。</span>
+          <span class="v-p">它既是一部地理著作，也是一部具有文学价值的山水散文作品。</span>
+
+          <span class="v-h">② 展现人与自然的深度交流</span>
+          <span class="v-p">徐霞客笔下的山水并非简单景物，而是充满生命力的自然世界。</span>
+          <span class="v-p">他通过细腻的观察描写，展现人与自然之间的联系，体现中国传统山水文化精神。</span>
+
+          <span class="v-h">③ 丰富中国游记文学体系</span>
+          <span class="v-p">《徐霞客游记》语言生动，描写真实，将旅途中的险阻、发现和感悟融入文字。</span>
+          <span class="v-p">它推动了中国游记文学的发展，对后世文学创作产生深远影响。</span>
+
+          <span class="v-h">④ 体现探索精神与文化价值</span>
+          <span class="v-p">徐霞客不畏艰险、探索未知的精神，成为中国文化中追求真知、勇于实践的重要象征。</span>
+          <span class="v-p">他的足迹不仅记录山河，也记录了一种不断探索世界的精神。</span>
         </p>
       </div>
       <!-- 右侧：科学价值 -->
@@ -1259,7 +1422,21 @@
         <div class="value-line"></div>
         <div class="value-sub">以足迹丈量山河，以观察探索自然</div>
         <p class="value-text">
-          徐霞客长期深入实地考察，对山川地貌、水文、岩溶等自然现象进行了大量细致观察和记录。《徐霞客游记》保存了丰富的地理考察资料，对中国地理学、地貌学以及水文研究具有重要价值，也体现了严谨的实地探索精神。
+          <span class="v-h">① 开创实地考察传统</span>
+          <span class="v-p">徐霞客突破传统地理著作依靠文献记载的方式，以亲身跋涉、实地观察的方法探索中国山河。</span>
+          <span class="v-p">他通过长期旅行记录山脉、水系、地貌变化，为中国古代地理研究提供了大量真实资料，形成了具有科学意义的考察体系。</span>
+
+          <span class="v-h">② 推动岩溶地貌研究</span>
+          <span class="v-p">徐霞客对西南地区喀斯特地貌进行了深入考察，详细记录石灰岩地区的峰林、洞穴、地下河等自然现象。</span>
+          <span class="v-p">这些观察比西方现代岩溶地貌研究早出现数百年，体现了中国古代地理探索的科学价值。</span>
+
+          <span class="v-h">③ 补充河流水系认识</span>
+          <span class="v-p">在长期旅行过程中，徐霞客考察多条河流源头与流向，对长江水系、西南河流进行了详细记录。</span>
+          <span class="v-p">他的观察修正了部分传统地理认识，为后世研究中国自然地理提供了重要依据。</span>
+
+          <span class="v-h">④ 建立综合自然观察方法</span>
+          <span class="v-p">徐霞客不仅记录景观，还关注地形、岩石、水文、植物和环境之间的联系。</span>
+          <span class="v-p">这种综合性的自然观察方式，体现了早期科学探索精神。</span>
         </p>
       </div>
     </div>
@@ -3070,6 +3247,66 @@
     const mapArea     = document.getElementById('mapArea');
     const wechatImgWrap = document.getElementById('wechatImgWrap');
 
+    // ===== BorderGlow 移植（原生 JS 版）：第四模块卡片边缘流光 =====
+    // 与原组件 getEdgeProximity / getCursorAngle 算法一致，
+    // pointermove 只做取值，rAF 中计算并仅更新两个 CSS 变量，绘制交给 CSS。
+    const valueGlowCards = document.querySelectorAll('.value-card');
+    valueGlowCards.forEach(card => {
+      let rafId = 0, mx = 0, my = 0;
+      const applyGlow = () => {
+        rafId = 0;
+        const r = card.getBoundingClientRect();
+        const dx = (mx - r.left) - r.width / 2;
+        const dy = (my - r.top) - r.height / 2;
+        const kx = dx !== 0 ? (r.width / 2) / Math.abs(dx) : Infinity;
+        const ky = dy !== 0 ? (r.height / 2) / Math.abs(dy) : Infinity;
+        const edge = Math.min(Math.max(1 / Math.min(kx, ky), 0), 1) * 100;
+        let deg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        if (deg < 0) deg += 360;
+        card.style.setProperty('--edge-proximity', edge.toFixed(2));
+        card.style.setProperty('--cursor-angle', deg.toFixed(2) + 'deg');
+      };
+      card.addEventListener('pointermove', e => {
+        mx = e.clientX; my = e.clientY;
+        card.classList.add('glow-active');
+        if (!rafId) rafId = requestAnimationFrame(applyGlow);
+      });
+      card.addEventListener('pointerleave', () => {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        card.classList.remove('glow-active');
+        card.style.setProperty('--edge-proximity', '0'); // 淡出节奏交给 CSS 过渡
+      });
+    });
+
+    // 入场扫光：第四模块打开时每张卡片播放一次（柔和正弦包络，约 2 秒，不循环）
+    let valueGlowSweepRunning = false;
+    function playValueGlowSweep() {
+      if (valueGlowSweepRunning) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      valueGlowSweepRunning = true;
+      const DUR = 1900;
+      const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      valueGlowCards.forEach((card, i) => {
+        setTimeout(() => {
+          if (!valuePanels.classList.contains('show')) { valueGlowSweepRunning = false; return; }
+          card.classList.add('glow-sweep');
+          const t0 = performance.now();
+          (function tick(now) {
+            const t = Math.min((now - t0) / DUR, 1);
+            // 光带绕行一圈（120°→470°），强度 0→0.44→0 缓起缓落
+            card.style.setProperty('--cursor-angle', (120 + 350 * easeInOut(t)).toFixed(2) + 'deg');
+            card.style.setProperty('--edge-proximity', (Math.sin(Math.PI * Math.min(t * 1.12, 1)) * 62).toFixed(2));
+            if (t < 1) { requestAnimationFrame(tick); }
+            else {
+              card.style.setProperty('--edge-proximity', '0');
+              card.classList.remove('glow-sweep');
+              if (i === valueGlowCards.length - 1) valueGlowSweepRunning = false;
+            }
+          })(performance.now());
+        }, 180 + i * 220);
+      });
+    }
+
     chapterCards.forEach(card => {
       card.addEventListener('click', function() {
         chapterCards.forEach(c => c.classList.remove('active'));
@@ -3091,17 +3328,23 @@
 
         // ===== 第四章：文学与科学价值 =====
         document.body.classList.remove('chapter-intro');
+        document.body.classList.remove('chapter-value');
+        document.body.classList.remove('chapter-early');
         if (chapter === 'value') {
-          // 隐藏右侧信息栏、淡化地图底图、显示价值卡片
+          // 隐藏右侧信息栏、淡化地图底图、显示价值卡片；在 body 上打标记用于布局扩宽 map-area
+          document.body.classList.add('chapter-value');
           infoPanel.classList.add('value-hidden');
           mapArea.classList.add('chapter-value');
           valuePanels.classList.add('show');
+          playValueGlowSweep(); // BorderGlow 入场扫光（仅一次）
           // 第四章仅保留地图底图，不绘制路线与 marker
           map.setView([30.5, 110], 5);
           return;
         }
 
         // ===== 其他章节：恢复默认 UI，清除第四章残留状态 =====
+        document.body.classList.remove('chapter-value');
+        document.body.classList.remove('chapter-early');
         infoPanel.classList.remove('value-hidden');
         mapArea.classList.remove('chapter-value');
         valuePanels.classList.remove('show');
@@ -3109,9 +3352,13 @@
         switch (chapter) {
           case 'intro':
             document.body.classList.add('chapter-intro');
+            document.querySelector('.map-controls').classList.remove('show');
             drawOverview();
             break;
           case 'early':
+            // 标记模块二，显示两个右侧悬浮按钮（模块二专属）
+            document.body.classList.add('chapter-early');
+            document.querySelector('.map-controls').classList.add('show');
             // 聚焦前期名山
             const earlyPts = fullRoute.slice(0, 6);
             const el = L.polyline(earlyPts, {
@@ -3142,6 +3389,7 @@
             break;
           case 'late':
             document.body.classList.add('chapter-late');
+            document.querySelector('.map-controls').classList.remove('show');
             mountLateMap();
             break;
         }
