@@ -1329,7 +1329,7 @@
     }
   </style>
 </head>
-<body>
+<body class="chapter-intro">
 
   <!-- ==================== 水墨装饰图片（本地 assets，原图托管于 GitHub 图床 yhy109809-dev/xu-xiake-images） ==================== -->
   <div class="deco-layer">
@@ -3457,6 +3457,29 @@
 
     // ===== 启动 =====
     initMap();
+    // 首次加载时直接进入「模块一/背景介绍」最终状态：
+    // HTML body 默认已带 class="chapter-intro"，但还需确保 JS 侧状态对齐：
+    // 把 intro 卡片设为 active（尽管 HTML 已默认有 active，这里仍做一次以统一后续逻辑判断），
+    // 并确保 .map-controls 初始隐藏，避免初始状态与切回不一致。
+    (function initIntroChapter() {
+      chapterCards.forEach(c => c.classList.remove('active'));
+      const introCard = document.querySelector('.chapter-card[data-chapter="intro"]');
+      if (introCard) introCard.classList.add('active');
+      document.body.classList.add('chapter-intro');
+      // 显式添加 chapter-intro 保证以下 CSS 立即生效：
+      // body.chapter-intro .info-panel（宽度）
+      // body.chapter-intro .ip-portrait（肖像 65% 居中）
+      // body.chapter-intro .ip-block.ip-intro-block（徐霞客简介文字块显示）
+      // body.chapter-intro .info-panel .intro-text / .panel-title（字号）
+      const mapControls = document.querySelector('.map-controls');
+      if (mapControls) mapControls.classList.remove('show');
+      // 清除第四章残留状态（避免未来有浏览器缓存恢复）
+      document.body.classList.remove('chapter-value', 'chapter-early', 'chapter-late');
+      infoPanel.classList.remove('value-hidden');
+      mapArea.classList.remove('chapter-value');
+      valuePanels.classList.remove('show');
+      wechatImgWrap.classList.remove('show');
+    })();
   </script>
 
 </body>
