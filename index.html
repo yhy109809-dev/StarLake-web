@@ -1108,6 +1108,23 @@
     /* 第四模块：让地图区扩展到整个右侧（除了左侧 sidebar），充分利用原 info-panel 的空白空间 */
     body.chapter-value .map-area { width: calc(100vw - var(--sidebar-w)); }
     body.chapter-value .bottom-scape { width: 100%; left: 0; }
+    /* ===== 模块一/模块四：全国游历总图背景层(multiply 消白底,融入宣纸背景) ===== */
+    body.chapter-intro .scroll-frame,
+    body.chapter-value .scroll-frame { visibility: hidden; }
+    body.chapter-value .leaflet-tile-pane { opacity: 0; }
+    .fullmap-wrap {
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      z-index: 6; pointer-events: none;
+    }
+    body.chapter-intro #introMapWrap { display: flex; }
+    body.chapter-value #valueMapWrap { display: flex; align-items: flex-end; }
+    .fullmap-wrap img {
+      max-width: 90%; max-height: 92%; object-fit: contain;
+      mix-blend-mode: multiply; filter: saturate(1.06);
+    }
+    body.chapter-value #valueMapWrap img { max-width: 84%; max-height: 86%; margin-bottom: 10px; }
+
     /* 模块一(背景介绍):地图区右收1/5,右侧扩为介绍空间 */
     body.chapter-intro .map-area { width: calc(var(--map-w) - var(--map-w) / 5); }
     body.chapter-intro .info-panel { width: calc(100vw - var(--sidebar-w) - var(--map-w) + var(--map-w) / 5); min-width: 280px; }
@@ -1575,6 +1592,9 @@
       <div class="point-panel" id="pointPanel"></div>
     </div>
 
+    <!-- ==================== 全国游历总图背景层(模块一/模块四) ==================== -->
+    <div class="fullmap-wrap" id="introMapWrap"><img src="assets/fullmap.png" alt="徐霞客一生游历总图"></div>
+    <div class="fullmap-wrap" id="valueMapWrap"><img src="assets/fullmap.png" alt="徐霞客一生游历总图"></div>
     <!-- ==================== 模块三：后期万里遐征（合并展示区 + 时间轴） ==================== -->
     <div class="late-wrap" id="lateWrap">
       <div class="late-title">后期万里遐征 · 1636—1640</div>
