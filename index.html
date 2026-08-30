@@ -3608,6 +3608,7 @@
 
     // ===== 启动 =====
     initMap();
+    ensureIntroMap(); // 初始章节即模块一,须立即创建总图查看器
 
     // ===== 封面 / 开场页：点击「进入」后过渡到第一个模块（复用下方现有初始化，不新增模块系统） =====
     const coverLayer = document.getElementById('coverLayer');
