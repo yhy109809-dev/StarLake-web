@@ -1327,9 +1327,121 @@
       body.chapter-value .map-area { width: var(--map-w); }
       body.chapter-value .map-controls { right: 16px; }
     }
+
+    /* ==================== 网站封面 / 开场页 ==================== */
+    /* 封面态：主体四层暂时隐藏（用 visibility 而非 display:none，保证 Leaflet 初始化时容器尺寸有效） */
+    body.cover-mode .deco-layer,
+    body.cover-mode .sidebar,
+    body.cover-mode .map-area,
+    body.cover-mode .info-panel,
+    body.cover-mode .value-panels { visibility: hidden; }
+
+    #coverLayer {
+      position: fixed; inset: 0; z-index: 5000;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      /* 宣纸底色：当窗口比例与封面(16:9)不一致时，留边与封面宣纸色自然融合 */
+      background:
+        radial-gradient(120% 90% at 50% 40%, rgba(255, 252, 244, 0.65) 0%, rgba(245, 236, 220, 0) 60%),
+        linear-gradient(180deg, #f6edda 0%, #efe3cb 100%);
+    }
+    /* 画框容器：始终按封面原图 1024:576 比例完整显示（不裁切、不变形） */
+    .cover-frame {
+      position: relative;
+      width: min(100vw, calc(100vh * (1024 / 576)));
+      aspect-ratio: 1024 / 576;
+      box-shadow: 0 0 90px rgba(120, 96, 58, 0.18);
+      transition: transform 0.95s cubic-bezier(0.55, 0.06, 0.35, 0.95);
+    }
+    .cover-frame img {
+      width: 100%; height: 100%;
+      object-fit: contain; display: block;
+      user-select: none; -webkit-user-drag: none;
+    }
+    /* “进入”热区：与封面图上朱砂按钮对齐（约 50% / 82.5%），透明可点击 */
+    .cover-enter {
+      position: absolute; left: 50%; top: 82.5%;
+      width: 14%; height: 9.5%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      cursor: pointer;
+      background: transparent;
+      border: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cover-enter:focus-visible { outline: 1px solid rgba(192, 57, 43, 0.45); outline-offset: 6px; }
+    /* 呼吸微光：极淡的金棕晕，随呼吸缓缓明灭，克制不抢戏 */
+    .cover-enter .cover-glow {
+      position: absolute; inset: -46% -18%;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(214, 178, 115, 0.4) 0%, rgba(214, 178, 115, 0.12) 55%, rgba(214, 178, 115, 0) 75%);
+      opacity: 0.55;
+      animation: coverBreath 3.2s ease-in-out infinite;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+    .cover-enter:hover .cover-glow,
+    .cover-enter:focus-visible .cover-glow { opacity: 1; }
+    .cover-enter .cover-ring {
+      position: absolute; inset: 0;
+      border-radius: 999px;
+      box-shadow: 0 0 0 0 rgba(214, 178, 115, 0);
+      transition: box-shadow 0.45s ease, transform 0.45s var(--ease-soft, ease);
+      pointer-events: none;
+    }
+    .cover-enter:hover .cover-ring {
+      transform: scale(1.035);
+      box-shadow: 0 0 26px rgba(214, 178, 115, 0.4), inset 0 0 14px rgba(214, 178, 115, 0.14);
+    }
+    @keyframes coverBreath {
+      0%, 100% { opacity: 0.4; transform: scale(0.985); }
+      50%      { opacity: 0.75; transform: scale(1.015); }
+    }
+
+    /* 点击“进入”：封面淡出 + 轻微放大 + 柔化虚化（借鉴 React Bits 优雅淡入思路的本地化实现） */
+    #coverLayer.leaving { animation: coverOut 0.95s cubic-bezier(0.55, 0.06, 0.35, 0.95) forwards; }
+    #coverLayer.leaving .cover-frame { transform: scale(0.982); }
+    #coverLayer.leaving .cover-enter { pointer-events: none; }
+    @keyframes coverOut {
+      0%   { opacity: 1; filter: blur(0); }
+      100% { opacity: 0; filter: blur(10px); transform: scale(1.045); }
+    }
+
+    /* 进入后：主体各层依次淡入 + 轻微上移/虚化收束，形成层次感入场 */
+    body.entered .map-area,
+    body.entered .info-panel,
+    body.entered .deco-layer {
+      animation: mainLayerIn 0.9s var(--ease-soft, ease) 0.12s both;
+    }
+    body.entered .sidebar { animation: sideLayerIn 0.9s var(--ease-soft, ease) 0.18s both; }
+    @keyframes mainLayerIn {
+      from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+      to   { opacity: 1; transform: none; filter: none; }
+    }
+    @keyframes sideLayerIn {
+      from { opacity: 0; transform: translateX(-18px); filter: blur(6px); }
+      to   { opacity: 1; transform: none; filter: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #coverLayer.leaving { animation-duration: 0.2s; }
+      body.entered .map-area, body.entered .info-panel,
+      body.entered .deco-layer, body.entered .sidebar { animation-duration: 0.2s; animation-delay: 0s; }
+      .cover-enter .cover-glow { animation: none; }
+    }
   </style>
 </head>
-<body class="chapter-intro">
+<body class="chapter-intro cover-mode">
+
+  <!-- ==================== 网站封面 / 开场页（点击“进入”后移除，不占用模块系统） ==================== -->
+  <div id="coverLayer" aria-label="网站封面">
+    <div class="cover-frame">
+      <img src="封面.png" alt="徐霞客游记 · 封面">
+      <button class="cover-enter" id="coverEnterBtn" type="button" aria-label="进入">
+        <span class="cover-glow"></span>
+        <span class="cover-ring"></span>
+      </button>
+    </div>
+  </div>
 
   <!-- ==================== 水墨装饰图片（本地 assets，原图托管于 GitHub 图床 yhy109809-dev/xu-xiake-images） ==================== -->
   <div class="deco-layer">
@@ -3457,6 +3569,30 @@
 
     // ===== 启动 =====
     initMap();
+
+    // ===== 封面 / 开场页：点击「进入」后过渡到第一个模块（复用下方现有初始化，不新增模块系统） =====
+    const coverLayer = document.getElementById('coverLayer');
+    const coverEnterBtn = document.getElementById('coverEnterBtn');
+    let coverEntered = false;
+    function enterSite() {
+      if (coverEntered || !coverLayer) return;
+      coverEntered = true;
+      // 主体可见性恢复（visibility 由 cover-mode 控制），并触发层次入场动画
+      document.body.classList.remove('cover-mode');
+      document.body.classList.add('entered');
+      // 封面淡出 + 轻微放大 + 柔化虚化，动画结束后从 DOM 移除（不刷新、不跳转）
+      coverLayer.classList.add('leaving');
+      const removeCover = () => { if (coverLayer && coverLayer.parentNode) coverLayer.parentNode.removeChild(coverLayer); };
+      coverLayer.addEventListener('animationend', removeCover, { once: true });
+      setTimeout(removeCover, 1400); // 兜底
+    }
+    if (coverEnterBtn) coverEnterBtn.addEventListener('click', enterSite);
+    window.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && document.body.classList.contains('cover-mode')) {
+        e.preventDefault();
+        enterSite();
+      }
+    });
     // 首次加载时直接进入「模块一/背景介绍」最终状态：
     // HTML body 默认已带 class="chapter-intro"，但还需确保 JS 侧状态对齐：
     // 把 intro 卡片设为 active（尽管 HTML 已默认有 active，这里仍做一次以统一后续逻辑判断），
