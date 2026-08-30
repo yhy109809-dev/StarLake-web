@@ -1768,10 +1768,9 @@
         minZoom: -1,
         maxZoom: 3,
       });
-      L.imageOverlay('assets/early-route-map.png', earlyBounds).addTo(earlyMap);
-      earlyMap.fitBounds(earlyBounds, { animate: false }); // 初始全览(瞬时,不动画)
+      // 底图按程切换(见 showRoute);复位 = 平滑飞回当前程聚焦视图
       document.getElementById('btnEarlyReset').addEventListener('click', () => {
-        earlyMap.flyToBounds(earlyBounds, { duration: 1.4, easeLinearity: 0.22 }); // 复位:平滑飞回全览
+        focusRouteView(ROUTES[routeIndex].id);
       });
       // 拖拽/缩放期间抑制点击，防止拖图松手时误触点位；同时隐去地图回声地名
       earlyMap.on('movestart', () => { routeClickSuppressed = true; destroyMapEcho(); });
@@ -1782,35 +1781,26 @@
     // ===== 九程路线系统（依次显示 + 水墨风开关 + 点位交互） =====
     // 第一程 SVG 直接内嵌（仅 2.4KB），避免资源文件缺失导致路线不显示
     const QILU_SVG =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89">' +
-      '<style>' +
-      '.rt{fill:none;stroke:#e06a55;stroke-width:1.87px;stroke-linecap:square;stroke-linejoin:bevel}' +
-      '.pt{fill:#fff;stroke:#222;stroke-width:.5px;fill-rule:evenodd}' +
-      '.pt-hot{cursor:pointer}' +
-      '.hit{fill:transparent;stroke:none;cursor:pointer}' +
-      '.lbl{font-family:"KaiTi","STKaiti","Noto Serif SC",serif;font-size:7.5px;fill:#5c3d2e;paint-order:stroke;stroke:#f4ecd8;stroke-width:1.6px;stroke-linejoin:round}' +
-      '.lbl-hot{fill:#9e2d3e;font-weight:bold}' +
-      '</style>' +
-      '<g id="rt-qilu"><path class="rt" d="M471.01,512.14c-3.37.34-6.74.68-10.11,1.02-1.99-1.53-4.27-3.57-6.51-6.23-3.71-4.43-5.81-8.81-7.01-12,.9-1.8,2.05-4.71,2.13-8.35.04-1.93-.19-5.08-4.19-13.27-1.62-3.32-4.02-7.79-7.41-12.85-4.87-2.74-8.32-5.77-10.56-8.03-2.03-2.05-5.27-5.33-7.84-10.43-1.41-2.8-1.87-4.6-3.96-7.66-1.68-2.45-2.31-3.7-3.55-4.85-2.08,1.16-3.42,1.72-6.4,3.22-3.59,1.81-9.02,2.95-11.76,3.18,7.83-5.76,8.04-10.61,7.51-12.67-.69-2.63-3.93-2.73-10.58-8.93-3.11-2.9-4.22-4.56-4.92-6.25-1.25-2.99-1.19-5.8-.99-7.53-7.9-16.56-8.26-21.08-6.93-21.94,2.08-1.34,7.75,6.6,14.87,5.58,4.57-.66,7.74-4.72,9.65-7.91"/></g>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2562 2961">' +
       '<g id="pts-qilu">' +
-      '<path class="pt" data-name="江阴·启程" d="M473.31,512.41c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt" data-name="镇江渡江" d="M463.7,513.49c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt" data-name="扬州" d="M449.68,495.19c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt" data-name="淮安" d="M440.21,460.72c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt" data-name="济宁" d="M396.73,436.51c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt pt-hot" id="pt-brief" data-name="曲阜·孔庙" d="M403.62,423.35c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<circle class="hit" data-type="brief" data-name="曲阜·孔庙" cx="402.34" cy="424.07" r="6"/>' +
-      '<path class="pt pt-hot" id="pt-detail" data-name="泰山·岱宗" d="M386.93,400.85c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<path class="pt" data-name="济南" d="M404.57,376.29c-.15,1.24-1.3,2.13-2.57,1.98s-2.18-1.28-2.03-2.53,1.3-2.13,2.57-1.98,2.18,1.28,2.03,2.53"/>' +
-      '<circle class="hit" data-type="detail" data-name="泰山·岱宗" cx="385.65" cy="401.57" r="6"/>' +
-      '<text class="lbl" text-anchor="start" x="476.8" y="516.0">江阴·启程</text>' +
-      '<text class="lbl" text-anchor="end" x="458.0" y="509.5">镇江渡江</text>' +
-      '<text class="lbl" text-anchor="start" x="452.9" y="498.9">扬州</text>' +
-      '<text class="lbl" text-anchor="start" x="443.4" y="464.2">淮安</text>' +
-      '<text class="lbl" text-anchor="end" x="391.0" y="440.2">济宁</text>' +
-      '<text class="lbl lbl-hot" text-anchor="start" x="408.0" y="426.9">曲阜·孔庙</text>' +
-      '<text class="lbl lbl-hot" text-anchor="end" x="381.2" y="404.4">泰山·岱宗</text>' +
-      '<text class="lbl" text-anchor="start" x="409.0" y="379.9">济南</text>' +
+      '<circle class="pt" data-name="江阴·启程" cx="1990.0" cy="1546.5" r="11"/>' +
+      '<circle class="pt" data-name="镇江渡江" cx="1932.6" cy="1555.8" r="11"/>' +
+      '<circle class="pt" data-name="扬州" cx="1891.9" cy="1474.9" r="11"/>' +
+      '<circle class="pt" data-name="淮安" cx="1851.6" cy="1331.4" r="11"/>' +
+      '<circle class="pt" data-name="济宁" cx="1671.3" cy="1230.0" r="11"/>' +
+      '<circle class="pt pt-hot" id="pt-brief" data-name="曲阜·孔庙" cx="1699.5" cy="1175.5" r="11"/>' +
+      '<circle class="hit" data-type="brief" data-name="曲阜·孔庙" cx="1699.5" cy="1175.5" r="30"/>' +
+      '<circle class="pt pt-hot" id="pt-detail" data-name="泰山·岱宗" cx="1630.1" cy="1081.9" r="11"/>' +
+      '<circle class="hit" data-type="detail" data-name="泰山·岱宗" cx="1630.1" cy="1081.9" r="30"/>' +
+      '<circle class="pt" data-name="济南" cx="1703.6" cy="979.5" r="11"/>' +
+      '<text class="lbl" text-anchor="start" x="2006" y="1554">江阴·启程</text>' +
+      '<text class="lbl" text-anchor="end" x="1916" y="1564">镇江渡江</text>' +
+      '<text class="lbl" text-anchor="end" x="1876" y="1483">扬州</text>' +
+      '<text class="lbl" text-anchor="end" x="1836" y="1339">淮安</text>' +
+      '<text class="lbl" text-anchor="start" x="1687" y="1238">济宁</text>' +
+      '<text class="lbl lbl-hot" text-anchor="start" x="1716" y="1184">曲阜·孔庙</text>' +
+      '<text class="lbl lbl-hot" text-anchor="end" x="1614" y="1090">泰山·岱宗</text>' +
+      '<text class="lbl" text-anchor="start" x="1720" y="988">济南</text>' +
       '</g>' +
       '</svg>';
 
@@ -2052,6 +2042,7 @@
     const ROUTES = [
       {
         id: "qilu", file: "assets/route-1608-qilu.svg", svgText: QILU_SVG,
+        img: "assets/routes/01.png", bounds: [[0, 0], [-2961, 2562]],
         no: "第一程", name: "齐鲁行", year: "万历三十六年（1608）",
         points: [
           {
@@ -2323,6 +2314,28 @@
     let routeIndex = 0;
     const routeSvgOverlays = {}; // route.id -> L.svgOverlay（缓存，避免重复加载）
 
+    let rvImageOverlay = null;   // 当前程专属底图
+    let baseImageOv = null;      // 全国底图(模块二/全览用)
+    const ovSvgOverlays = {};    // 全览模式的旧版彩色路线
+
+    async function loadOvSvg(route) {
+      if (ovSvgOverlays[route.id]) return ovSvgOverlays[route.id];
+      const txt = await fetch(route.file).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+      const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+      const el = document.importNode(doc.documentElement, true);
+      const line = el.querySelector('[id^="rt-"] path');
+      if (line && ROUTE_COLORS[route.id]) line.style.stroke = ROUTE_COLORS[route.id];
+      const ov = L.svgOverlay(el, earlyBounds, { interactive: false, className: 'route-fade' });
+      ovSvgOverlays[route.id] = ov;
+      return ov;
+    }
+
+    function hideRvAndOvLayers() {
+      [rvImageOverlay, baseImageOv, ...Object.values(ovSvgOverlays)].forEach(o => {
+        if (o) { const el = o.getElement && o.getElement(); if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; } }
+      });
+    }
+
     function loadRouteOverlay(route) {
       const make = (txt) => {
         const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
@@ -2330,7 +2343,7 @@
         // 路线按程配色(全览模式可辨识)
         const line = el.querySelector('[id^="rt-"] path');
         if (line && ROUTE_COLORS[route.id]) line.style.stroke = ROUTE_COLORS[route.id];
-        const overlay = L.svgOverlay(el, earlyBounds, { interactive: true, className: 'route-fade' });
+        const overlay = L.svgOverlay(el, route.bounds || earlyBounds, { interactive: true, className: 'route-fade' });
         routeSvgOverlays[route.id] = overlay;
         return overlay;
       };
@@ -2384,31 +2397,9 @@
 
     // 视野自动跟随:框选当前路线及其点位标签,恰好显示全部信息
     function focusRouteView(routeId) {
-      const el = routeSvgOverlays[routeId].getElement();
-      if (!el) return;
-      let bb = null;
-      el.querySelectorAll('g').forEach(g => {
-        const id = g.id || '';
-        if (id.indexOf('rt-') === 0 || id.indexOf('pts-') === 0) {
-          const b = g.getBBox();
-          if (b.width > 0 || b.height > 0) {
-            if (bb) {
-              const x2 = Math.max(bb.x + bb.w, b.x + b.width), y2 = Math.max(bb.y + bb.h, b.y + b.height);
-              bb.x = Math.min(bb.x, b.x); bb.y = Math.min(bb.y, b.y);
-              bb.w = x2 - bb.x; bb.h = y2 - bb.y;
-            } else {
-              bb = { x: b.x, y: b.y, w: b.width, h: b.height };
-            }
-          }
-        }
-      });
-      if (!bb || bb.w <= 0) return;
-      const sx = 1055 / 595.28, sy = 1491 / 841.89;
-      const pad = 30; // viewBox 单位外扩,给四周标签留呼吸空间
-      const west = (bb.x - pad) * sx, east = (bb.x + bb.w + pad) * sx;
-      const north = -(bb.y - pad) * sy, south = -(bb.y + bb.h + pad) * sy;
-      // 平滑飞行到当前路线:1.4秒缓动,先平移后缩放的连贯轨迹
-      earlyMap.flyToBounds([[south, west], [north, east]], { padding: [50, 50], maxZoom: 2, duration: 1.4, easeLinearity: 0.22 });
+      const route = ROUTES.find(r => r.id === routeId);
+      const b = (route && route.bounds) || earlyBounds;
+      earlyMap.flyToBounds(b, { padding: [50, 50], maxZoom: 2, duration: 1.4, easeLinearity: 0.22 });
     }
 
     async function showRoute(i) {
@@ -2427,6 +2418,22 @@
       const nextRoute = ROUTES[(i + 1) % ROUTES.length];
       document.getElementById('btnNextRoute').textContent = `下一程 · ${nextRoute.name}`;
       try {
+        hideRvAndOvLayers();
+        // 底图切换:有专属底图的程用专属图,否则用全国底图
+        if (rvImageOverlay) { earlyMap.removeLayer(rvImageOverlay); rvImageOverlay = null; }
+        if (route.img) {
+          rvImageOverlay = L.imageOverlay(route.img, route.bounds, { interactive: false, className: 'route-fade' });
+          rvImageOverlay.addTo(earlyMap);
+          const ie = rvImageOverlay.getElement();
+          ie.style.pointerEvents = 'none';
+          requestAnimationFrame(() => { ie.style.opacity = '1'; });
+        } else {
+          if (!baseImageOv) baseImageOv = L.imageOverlay('assets/early-route-map.png', earlyBounds, { interactive: false, className: 'route-fade' });
+          baseImageOv.addTo(earlyMap);
+          const ie = baseImageOv.getElement();
+          ie.style.pointerEvents = 'none';
+          requestAnimationFrame(() => { ie.style.opacity = '1'; });
+        }
         if (!routeSvgOverlays[route.id]) await loadRouteOverlay(route);
         const ov = routeSvgOverlays[route.id];
         ov.addTo(earlyMap);
@@ -3550,9 +3557,13 @@
     async function enterOverview() {
       overviewMode = true;
       closePointPanel();
+      hideRvAndOvLayers();
+      if (!baseImageOv) baseImageOv = L.imageOverlay('assets/early-route-map.png', earlyBounds, { interactive: false, className: 'route-fade' });
+      baseImageOv.addTo(earlyMap);
+      baseImageOv.getElement().style.opacity = '1';
       for (const r of ROUTES) {
-        if (!routeSvgOverlays[r.id]) await loadRouteOverlay(r);
-        const ov = routeSvgOverlays[r.id];
+        await loadOvSvg(r);
+        const ov = ovSvgOverlays[r.id];
         ov.addTo(earlyMap);
         const el = ov.getElement();
         // 全览:隐藏文字与点位,仅显示各自配色的路线,且不拦截鼠标
@@ -3566,21 +3577,28 @@
     }
     function exitOverview() {
       overviewMode = false;
-      const cur = ROUTES[routeIndex];
       for (const r of ROUTES) {
-        if (r.id === cur.id) continue;
-        const ov = routeSvgOverlays[r.id];
+        const ov = ovSvgOverlays[r.id];
         const el = ov && ov.getElement && ov.getElement();
         if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
       }
-      const el = routeSvgOverlays[cur.id] && routeSvgOverlays[cur.id].getElement();
-      if (el) {
-        el.querySelectorAll('text, circle').forEach(n => n.style.display = '');
-        el.querySelectorAll('g[id^="pts-"]').forEach(g => g.style.display = '');
-        el.style.pointerEvents = 'auto';
+      if (baseImageOv) { const el = baseImageOv.getElement(); el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+      focusRouteView(ROUTES[routeIndex].id);
+      const cur = ROUTES[routeIndex];
+      if (cur.img && rvImageOverlay) {
+        rvImageOverlay.addTo(earlyMap);
+        const el = rvImageOverlay.getElement();
+        el.style.pointerEvents = 'none';
         requestAnimationFrame(() => { el.style.opacity = '1'; });
       }
-      focusRouteView(cur.id);
+      const sv = routeSvgOverlays[cur.id];
+      if (sv) {
+        sv.addTo(earlyMap);
+        const el = sv.getElement();
+        el.style.pointerEvents = 'auto';
+        requestAnimationFrame(() => { el.style.opacity = '1'; });
+        bindRouteInteractions(cur);
+      }
     }
 
     document.getElementById('btnCompass').addEventListener('click', () => {
