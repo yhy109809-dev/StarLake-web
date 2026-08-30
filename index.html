@@ -1119,6 +1119,8 @@
     }
     body.chapter-intro #introMapWrap { display: flex; }
     body.chapter-value #valueMapWrap { display: flex; align-items: flex-end; }
+    #introMapContainer { background: transparent; cursor: grab; pointer-events: auto; }
+    #introMapContainer:active { cursor: grabbing; }
     .fullmap-wrap img {
       max-width: 90%; max-height: 92%; object-fit: contain;
       mix-blend-mode: multiply; filter: saturate(1.06);
@@ -1593,7 +1595,10 @@
     </div>
 
     <!-- ==================== 全国游历总图背景层(模块一/模块四) ==================== -->
-    <div class="fullmap-wrap" id="introMapWrap"><img src="assets/fullmap.png" alt="徐霞客一生游历总图"></div>
+    <div class="fullmap-wrap" id="introMapWrap">
+      <div id="introMapContainer" style="position:absolute;inset:0;"></div>
+      <div class="early-map-tip" style="left:14px;bottom:12px;z-index:8;">滚轮缩放 · 拖拽平移</div>
+    </div>
     <div class="fullmap-wrap" id="valueMapWrap"><img src="assets/fullmap.png" alt="徐霞客一生游历总图"></div>
     <!-- ==================== 模块三：后期万里遐征（合并展示区 + 时间轴） ==================== -->
     <div class="late-wrap" id="lateWrap">
@@ -2636,6 +2641,19 @@
       { i: 29, name: '滇西 · 大理', year: '1639', month: 4,  season: 'spring', environment: 'lake' },
       { i: 33, name: '腾冲 · 西极', year: '1639', month: 12, season: 'winter', environment: 'mountain' },
     ];
+    // ===== 模块一:全国总图可缩放查看器(Leaflet CRS.Simple,懒初始化) =====
+    let introMap = null;
+    const introBounds = [[0, 0], [-1283, 1226]]; // fullmap.png 1226x1283
+    function ensureIntroMap() {
+      if (introMap) return;
+      introMap = L.map('introMapContainer', {
+        crs: L.CRS.Simple, attributionControl: false, zoomControl: false,
+        scrollWheelZoom: true, zoomSnap: 0.25, minZoom: -1, maxZoom: 2,
+      });
+      L.imageOverlay('assets/fullmap.png', introBounds, { interactive: false, className: 'route-fade' }).addTo(introMap);
+      introMap.fitBounds(introBounds, { animate: false });
+    }
+
     let lateMounted = false;
     let lateEchoGroup = null;
 
@@ -3493,6 +3511,7 @@
         switch (chapter) {
           case 'intro':
             document.body.classList.add('chapter-intro');
+            setTimeout(() => { ensureIntroMap(); introMap.invalidateSize(); introMap.fitBounds(introBounds, { animate: false }); }, 60);
             document.querySelector('.map-controls').classList.remove('show');
             drawOverview();
             break;
