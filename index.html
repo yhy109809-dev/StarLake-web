@@ -1778,8 +1778,8 @@
 
     // ===== 模块二：前期路线图查看器（Leaflet CRS.Simple 纯图片地图） =====
     let earlyMap = null;
-    // 底图与路线 SVG 统一使用 595.28×841.89 坐标系（对应 SVG viewBox，纵轴向下故 y 取负）
-    const earlyBounds = [[0, 0], [-841.89, 595.28]];
+    // 按原图宽高比 1055:1491 设置 bounds（CRS.Simple 纵轴向下，故 y 取负）
+    const earlyBounds = [[0, 0], [-1491, 1055]];
     let routeClickSuppressed = false; // 拖拽后抑制误触点击
 
     function ensureEarlyMap() {
@@ -1793,8 +1793,7 @@
         minZoom: -1,
         maxZoom: 3,
       });
-      // 底图：从正确 SVG(2 (N).svg) 恢复的地图底图图层（省份+地形+标注），与路线共用同一坐标系
-      L.imageOverlay('assets/early-base-map.svg', earlyBounds).addTo(earlyMap);
+      L.imageOverlay('assets/early-route-map.png', earlyBounds).addTo(earlyMap);
       earlyMap.fitBounds(earlyBounds, { animate: false }); // 初始全览(瞬时,不动画)
       document.getElementById('btnEarlyReset').addEventListener('click', () => {
         earlyMap.flyToBounds(earlyBounds, { duration: 1.4, easeLinearity: 0.22 }); // 复位:平滑飞回全览
@@ -2404,10 +2403,10 @@
         }
       });
       if (!bb || bb.w <= 0) return;
-      // SVG viewBox 坐标(595.28×841.89) 与底图/路线 overlay 共用同一坐标系，1:1 映射（lng=x, lat=-y）
+      const sx = 1055 / 595.28, sy = 1491 / 841.89;
       const pad = 30; // viewBox 单位外扩,给四周标签留呼吸空间
-      const west = bb.x - pad, east = bb.x + bb.w + pad;
-      const north = -(bb.y - pad), south = -(bb.y + bb.h + pad);
+      const west = (bb.x - pad) * sx, east = (bb.x + bb.w + pad) * sx;
+      const north = -(bb.y - pad) * sy, south = -(bb.y + bb.h + pad) * sy;
       // 平滑飞行到当前路线:1.4秒缓动,先平移后缩放的连贯轨迹
       earlyMap.flyToBounds([[south, west], [north, east]], { padding: [50, 50], maxZoom: 2, duration: 1.4, easeLinearity: 0.22 });
     }
@@ -2577,9 +2576,9 @@
     }
     function showMapEcho(name, cx, cy) {
       destroyMapEcho();
-      // SVG viewBox 坐标(595.28×841.89) 与底图/路线 overlay 共用同一坐标系：lng=x, lat=-y
-      const lng = cx;
-      const lat = -cy;
+      // SVG viewBox 坐标(595.28×841.89) → 底图坐标(1055×1491) → 容器像素点
+      const lng = cx * 1055 / 595.28;
+      const lat = -cy * 1491 / 841.89;
       const p = earlyMap.latLngToContainerPoint(L.latLng(lat, lng));
       const div = document.createElement('div');
       div.className = 'map-echo-label';
