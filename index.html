@@ -1165,8 +1165,13 @@
     .late-stage {
       position: absolute; left: 0; right: 0; top: 0; bottom: 118px;
       display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
     }
-    .late-map-holder { position: relative; height: 100%; aspect-ratio: 2481 / 1611; max-width: 100%; }
+    .late-map-holder {
+      position: relative; height: 100%; aspect-ratio: 2481 / 1611; max-width: 100%;
+      /* 自带宣纸底:变换创建层叠上下文后,multiply 仍与纸底混合,白底不外露 */
+      background: linear-gradient(180deg, #fbf7f0 0%, #efe0cc 100%);
+    }
     .late-map-holder img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .late-route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
     .late-timeline {
