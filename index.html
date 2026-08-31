@@ -1333,6 +1333,52 @@
     .fast-travel-btn:hover { transform: translateY(-2px); background: rgba(255,252,244,0.95); }
     .fast-travel-btn:disabled { cursor: default; opacity: 0.7; transform: none; }
 
+    /* ===== 路线流光与节点呼吸(模块二/三通用,纯CSS) ===== */
+    .rt-glow {
+      fill: none; stroke: rgba(255,236,190,0.95); stroke-width: 2.2;
+      stroke-linecap: round; stroke-dasharray: 16 340;
+      filter: drop-shadow(0 0 4px rgba(255,214,140,0.95));
+      animation: dashFlow 5.5s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes dashFlow { to { stroke-dashoffset: -356; } }
+    .pt, .pt-hot {
+      transform-box: fill-box; transform-origin: center;
+      animation: ptBreath 2.8s ease-in-out infinite;
+    }
+    @keyframes ptBreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.32); } }
+    .pt-hot { filter: drop-shadow(0 0 3px rgba(192,57,43,0.55)); }
+    /* 模块三节点聚焦缩放 */
+    .late-map-holder { transition: transform 1.3s cubic-bezier(0.25,0.46,0.45,0.94); }
+    /* ===== 模块四:徐霞客老者小人卡 ===== */
+    .value-xiake {
+      width: 150px; max-width: 14vw; align-self: stretch;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(252,246,232,0.9), rgba(245,236,220,0.85));
+      border: 1px solid var(--accent-gold); border-radius: 6px;
+      box-shadow: 0 6px 24px rgba(44,24,16,0.14); backdrop-filter: blur(2px);
+      padding: 12px 8px 10px; position: relative;
+    }
+    .value-xiake::before {
+      content: ""; position: absolute; inset: 6px;
+      border: 1px solid rgba(196,169,125,0.35); border-radius: 4px; pointer-events: none;
+    }
+    .value-xiake svg { width: 84px; height: auto; animation: xxkBob 2.6s ease-in-out infinite; }
+    .value-xiake .vx-name {
+      font-family: "KaiTi","STKaiti",serif; font-size: 14px; font-weight: bold;
+      color: var(--ink-dark); letter-spacing: 3px; margin-top: 4px;
+    }
+    .value-xiake .vx-sub { font-size: 10px; color: var(--ink-light); letter-spacing: 1px; margin: 2px 0 8px; }
+    .vx-btn {
+      cursor: pointer; border: 1px solid rgba(196,169,125,0.6); outline: none;
+      background: rgba(255,255,255,0.7); color: var(--ink-mid);
+      font-family: "KaiTi","STKaiti",serif; font-size: 11px; letter-spacing: 2px;
+      padding: 4px 12px; border-radius: 12px;
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+    .vx-btn:hover { background: rgba(196,169,125,0.3); transform: translateY(-1px); }
+    @media (max-width: 1100px) { .value-xiake { display: none; } }
+
     /* 响应式：窄屏两卡竖排仍保持等宽等高 */
     @media (max-width: 960px) {
       .value-panels { grid-template-columns: 1fr; gap: 18px; width: 86vw; }
@@ -1523,6 +1569,29 @@
 
     <!-- ==================== 第四章：文学与科学价值 ==================== -->
     <div class="value-panels" id="valuePanels">
+      <!-- 徐霞客老者小人(第一人称讲述) -->
+      <div class="value-xiake">
+        <svg viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="30" cy="80" rx="13" ry="2.5" fill="rgba(44,24,16,0.18)"/>
+        <line x1="44" y1="38" x2="47" y2="76" stroke="#7a5b3a" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="45.5" cy="36" r="2.4" fill="#8a6a45"/>
+        <rect x="12" y="24" width="6" height="12" rx="2.5" fill="#8a6a45"/>
+        <path d="M16,30 Q30,26 44,30 L46,72 Q30,78 14,72 Z" fill="#c9b28a"/>
+        <path d="M16,30 Q30,26 44,30 L44.5,38 Q30,33 15.5,38 Z" fill="#d8c49c"/>
+        <line x1="15" y1="52" x2="45" y2="52" stroke="#9c2817" stroke-width="2" opacity="0.75"/>
+        <path d="M24,48 Q30,70 26,74 M36,48 Q31,70 34,74" stroke="#b5a075" stroke-width="1.4" fill="none"/>
+        <circle cx="30" cy="19" r="8.5" fill="#f0d9bd"/>
+        <circle cx="27" cy="18" r="1" fill="#2c1810"/><circle cx="33" cy="18" r="1" fill="#2c1810"/>
+        <path d="M27.5,22 Q30,24 32.5,22" stroke="#2c1810" stroke-width="0.8" fill="none"/>
+        <path d="M25,25 Q30,34 35,25 L35,30 Q30,37 25,30 Z" fill="#e8e2d4"/>
+        <path d="M30,26 Q30,36 30,36" stroke="#cfc6b2" stroke-width="1" fill="none"/>
+        <path d="M19,14 Q30,4 41,14 L41,17 Q30,10 19,17 Z" fill="#3a3a3a"/>
+        <rect x="17" y="13" width="26" height="4.5" rx="2" fill="#2c2c2c"/>
+      </svg>
+        <div class="vx-name">徐霞客</div>
+        <div class="vx-sub">亲述 · 生平价值</div>
+        <button class="vx-btn" id="vxPlayBtn">🔊 听我讲述</button>
+      </div>
       <!-- 左侧：文学价值 -->
       <div class="value-card value-literature">
         <span class="value-corner tl"></span>
@@ -2330,6 +2399,12 @@
         // 路线按程配色(全览模式可辨识)
         const line = el.querySelector('[id^="rt-"] path');
         if (line && ROUTE_COLORS[route.id]) line.style.stroke = ROUTE_COLORS[route.id];
+        const rtPath = el.querySelector('[id^="rt-"] path');
+        if (rtPath) {
+          const glow = rtPath.cloneNode();
+          glow.setAttribute('class', 'rt-glow');
+          rtPath.parentNode.insertBefore(glow, rtPath.nextSibling);
+        }
         const overlay = L.svgOverlay(el, earlyBounds, { interactive: true, className: 'route-fade' });
         routeSvgOverlays[route.id] = overlay;
         return overlay;
@@ -2665,6 +2740,12 @@
       const el = document.importNode(doc.documentElement, true);
       el.classList.add('late-route-svg');
       holder.appendChild(el);
+      const rtP = el.querySelector('[id^="rt-"] path');
+      if (rtP) {
+        const glow = rtP.cloneNode();
+        glow.setAttribute('class', 'rt-glow');
+        rtP.parentNode.insertBefore(glow, rtP.nextSibling);
+      }
       const tl = document.getElementById('lateTimeline');
       tl.innerHTML = '<div class="lt-line"></div>';
       const n = LATE_NODES.length;
@@ -2697,6 +2778,23 @@
         `<text x="${+cx + 8}" y="${+cy + 3.5}" font-size="11" fill="#9e2d3e" font-weight="bold" font-family="KaiTi,STKaiti,serif">${name}</text>`;
       svg.appendChild(g);
       lateEchoGroup = g;
+    }
+
+    function zoomLateToNode(i) {
+      const holder = document.querySelector('.late-map-holder');
+      const svg = document.querySelector('#lateSvgHolder svg');
+      if (!holder || !svg) return;
+      const c = svg.querySelector(`circle[data-i="${i}"]`);
+      if (!c) return;
+      const vb = svg.viewBox.baseVal;
+      const px = ((+c.getAttribute('cx')) - vb.x) / vb.width * 100;
+      const py = ((+c.getAttribute('cy')) - vb.y) / vb.height * 100;
+      holder.style.transformOrigin = `${px.toFixed(1)}% ${py.toFixed(1)}%`;
+      holder.style.transform = 'scale(1.85)';
+    }
+    function resetLateZoom() {
+      const holder = document.querySelector('.late-map-holder');
+      if (holder) { holder.style.transformOrigin = '50% 50%'; holder.style.transform = 'scale(1)'; }
     }
 
     // ===== 动态游历叙事引擎(journeyProgress 统一驱动:人物/路线/时间轴/节点/语音) =====
@@ -2960,6 +3058,7 @@
       nd.triggered = true;
       updateTimeline();
       highlightLateDot(nd.i, nd.name);
+      zoomLateToNode(nd.i);
       // 节点光晕
       const svg = document.querySelector('#lateSvgHolder svg');
       if (svg) {
@@ -2977,6 +3076,7 @@
     }
     function continueJourney() {
       if (JOURNEY.finished) return;
+      resetLateZoom();
       try { speechSynthesis.cancel(); } catch (e) {}
       if (JOURNEY.haloEl) { JOURNEY.haloEl.remove(); JOURNEY.haloEl = null; }
       hideStoryCard();
@@ -2988,6 +3088,7 @@
       JOURNEY.finished = true;
       JOURNEY.playing = false;
       JOURNEY.progress = 1;
+      resetLateZoom();
       applyProgress();
       const btn = document.getElementById('journeyPauseBtn');
       btn.classList.remove('on');
@@ -2996,6 +3097,7 @@
     }
     function restartJourney() {
       JOURNEY.progress = 0; JOURNEY.finished = false; JOURNEY.started = false;
+      resetLateZoom();
       JOURNEY.atNode = null;
       JOURNEY.nodes.forEach(n => { n.triggered = false; });
       try { speechSynthesis.cancel(); } catch (e) {}
@@ -3488,6 +3590,7 @@
         // ===== 第四章：文学与科学价值 =====
         document.body.classList.remove('chapter-intro');
         document.body.classList.remove('chapter-value');
+        stopValueNarration();
         document.body.classList.remove('chapter-early');
         if (chapter === 'value') {
           // 隐藏右侧信息栏、淡化地图底图、显示价值卡片；在 body 上打标记用于布局扩宽 map-area
@@ -3496,6 +3599,7 @@
           mapArea.classList.add('chapter-value');
           valuePanels.classList.add('show');
           playValueGlowSweep(); // BorderGlow 入场扫光（仅一次）
+          playValueNarration(); // 徐霞客老者自述
           // 第四章仅保留地图底图，不绘制路线与 marker
           map.setView([30.5, 110], 5);
           return;
@@ -3605,6 +3709,56 @@
       if (!inEarlyChapter()) { gotoEarlyChapter(); return; }
       if (overviewMode) exitOverview(); else enterOverview();
     });
+
+    // ===== 模块四:徐霞客老者自述语音 =====
+    const VALUE_NARRATION = "老朽徐霞客。三十余年，双屐丈量山河，足迹遍及大半个中国。有人问我，缘何如此执着？徐霞客游记，既是一部地理考察之作，更是一部山水文章——我将风土人情与胸中所感，尽数融入笔端。我又常年深入实地，细察山川地貌、水文岩溶，为后世留存真实的地理。以游记写山河，以足迹探自然，这便是我一生的价值。";
+    let valueAudio = null, valuePlaying = false;
+    function playValueNarration() {
+      if (!valueAudio) {
+        valueAudio = new Audio('assets/audio/value-intro.mp3');
+        valueAudio.addEventListener('ended', () => { valuePlaying = false; document.getElementById('vxPlayBtn').textContent = '🔊 再听一遍'; });
+      }
+      valueAudio.currentTime = 0;
+      valueAudio.play().then(() => {
+        valuePlaying = true;
+        document.getElementById('vxPlayBtn').textContent = '⏸ 暂停讲述';
+      }).catch(() => {
+        // MP3 缺失/自动播放被拒:降级浏览器语音(年迈嗓音)
+        try {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(VALUE_NARRATION);
+          u.lang = 'zh-CN'; u.rate = 0.82; u.pitch = 0.68;
+          const vs = speechSynthesis.getVoices().filter(v => /^zh/i.test(v.lang || ''));
+          if (vs.length) u.voice = vs[0];
+          speechSynthesis.speak(u);
+          valuePlaying = true;
+          document.getElementById('vxPlayBtn').textContent = '⏸ 暂停讲述';
+        } catch (e) {}
+      });
+    }
+    function toggleValueNarration() {
+      const btn = document.getElementById('vxPlayBtn');
+      if (valuePlaying) {
+        if (valueAudio) valueAudio.pause();
+        try { speechSynthesis.pause(); } catch (e) {}
+        valuePlaying = false;
+        btn.textContent = '🔊 继续讲述';
+      } else {
+        if (valueAudio && valueAudio.currentTime > 0 && !valueAudio.ended) valueAudio.play().catch(() => {});
+        else playValueNarration();
+        try { speechSynthesis.resume(); } catch (e) {}
+        valuePlaying = true;
+        btn.textContent = '⏸ 暂停讲述';
+      }
+    }
+    function stopValueNarration() {
+      if (valueAudio) valueAudio.pause();
+      try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+      valuePlaying = false;
+      const btn = document.getElementById('vxPlayBtn');
+      if (btn) btn.textContent = '🔊 听我讲述';
+    }
+    document.getElementById('vxPlayBtn').addEventListener('click', toggleValueNarration);
 
     // ===== 启动 =====
     initMap();
