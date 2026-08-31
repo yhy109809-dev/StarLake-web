@@ -1167,7 +1167,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     .late-map-holder { position: relative; height: 100%; aspect-ratio: 2481 / 1611; max-width: 100%; }
-    .late-map-holder img { width: 100%; height: 100%; object-fit: contain; display: block; mix-blend-mode: multiply; }
+    .late-map-holder img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .late-route-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
     .late-timeline {
       position: absolute; left: 0; right: 0; bottom: 0; height: 118px;
@@ -1570,31 +1570,8 @@
     <!-- ==================== 第四章：文学与科学价值 ==================== -->
     <div class="value-panels" id="valuePanels">
       <!-- 徐霞客老者小人(第一人称讲述) -->
-      <!-- 徐霞客老者小人(最右端,置于文字卡之后) -->
-      <div class="value-xiake" style="order:3">
-        <svg viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="30" cy="80" rx="13" ry="2.5" fill="rgba(44,24,16,0.18)"/>
-        <line x1="44" y1="38" x2="47" y2="76" stroke="#7a5b3a" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="45.5" cy="36" r="2.4" fill="#8a6a45"/>
-        <rect x="12" y="24" width="6" height="12" rx="2.5" fill="#8a6a45"/>
-        <path d="M16,30 Q30,26 44,30 L46,72 Q30,78 14,72 Z" fill="#c9b28a"/>
-        <path d="M16,30 Q30,26 44,30 L44.5,38 Q30,33 15.5,38 Z" fill="#d8c49c"/>
-        <line x1="15" y1="52" x2="45" y2="52" stroke="#9c2817" stroke-width="2" opacity="0.75"/>
-        <path d="M24,48 Q30,70 26,74 M36,48 Q31,70 34,74" stroke="#b5a075" stroke-width="1.4" fill="none"/>
-        <circle cx="30" cy="19" r="8.5" fill="#f0d9bd"/>
-        <circle cx="27" cy="18" r="1" fill="#2c1810"/><circle cx="33" cy="18" r="1" fill="#2c1810"/>
-        <path d="M27.5,22 Q30,24 32.5,22" stroke="#2c1810" stroke-width="0.8" fill="none"/>
-        <path d="M25,25 Q30,34 35,25 L35,30 Q30,37 25,30 Z" fill="#e8e2d4"/>
-        <path d="M30,26 Q30,36 30,36" stroke="#cfc6b2" stroke-width="1" fill="none"/>
-        <path d="M19,14 Q30,4 41,14 L41,17 Q30,10 19,17 Z" fill="#3a3a3a"/>
-        <rect x="17" y="13" width="26" height="4.5" rx="2" fill="#2c2c2c"/>
-      </svg>
-        <div class="vx-name">徐霞客</div>
-        <div class="vx-sub">亲述 · 生平价值</div>
-        <button class="vx-btn" id="vxPlayBtn">🔊 听我讲述</button>
-      </div>
-      <!-- 文学价值(order 1) -->
-      <div class="value-card value-literature" style="order:1">
+<!-- 文学价值(order 1) -->
+      <div class="value-card value-literature">
         <span class="value-corner tl"></span>
         <span class="value-corner tr"></span>
         <span class="value-corner bl"></span>
@@ -1622,7 +1599,7 @@
         </p>
       </div>
       <!-- 右侧：科学价值 -->
-      <div class="value-card value-science" style="order:2">
+      <div class="value-card value-science">
         <span class="value-corner tl"></span>
         <span class="value-corner tr"></span>
         <span class="value-corner bl"></span>
@@ -1681,6 +1658,7 @@
       </div>
       <canvas id="seasonCanvas"></canvas>
       <button class="fast-travel-btn" id="fastTravelBtn">前往下一节点 →</button>
+      <button class="journey-pause-btn" id="valueAudioBtn" title="朗读/暂停" style="display:none;">🔊</button>
       <div class="late-timeline" id="lateTimeline"></div>
       <button class="journey-start-btn" id="journeyStartBtn" title="开始旅程">开始旅程</button>
       <button class="journey-pause-btn" id="journeyPauseBtn" title="暂停/继续">⏸</button>
@@ -3600,6 +3578,8 @@
           mapArea.classList.add('chapter-value');
           valuePanels.classList.add('show');
           playValueGlowSweep(); // BorderGlow 入场扫光（仅一次）
+          playValueNarration(); // 自动朗读卡片全文
+          const vab = document.getElementById('valueAudioBtn'); if (vab) { vab.style.display = 'flex'; vab.textContent = '⏸'; }
           playValueNarration(); // 徐霞客老者自述
           // 第四章仅保留地图底图，不绘制路线与 marker
           map.setView([30.5, 110], 5);
@@ -3711,55 +3691,53 @@
       if (overviewMode) exitOverview(); else enterOverview();
     });
 
-    // ===== 模块四:徐霞客老者自述语音 =====
-    const VALUE_NARRATION = "老朽徐霞客。三十余年，双屐丈量山河，足迹遍及大半个中国。有人问我，缘何如此执着？徐霞客游记，既是一部地理考察之作，更是一部山水文章——我将风土人情与胸中所感，尽数融入笔端。我又常年深入实地，细察山川地貌、水文岩溶，为后世留存真实的地理。以游记写山河，以足迹探自然，这便是我一生的价值。";
+    // ===== 模块四:朗读两张文本卡原文(年迈男声) =====
+    const VALUE_TEXT = "《徐霞客游记》，是一部集地理考察、科学记录和文学描写于一体的重要著作。全书记载了徐霞客遍游中国的经历，涉及山脉、水系、岩溶地貌等内容，不仅具有重要地理科学价值，也展现了中国古代山水文学的独特魅力。";
     let valueAudio = null, valuePlaying = false;
     function playValueNarration() {
-      if (!valueAudio) {
-        valueAudio = new Audio('assets/audio/value-intro.mp3');
-        valueAudio.addEventListener('ended', () => { valuePlaying = false; document.getElementById('vxPlayBtn').textContent = '🔊 再听一遍'; });
-      }
+      if (!valueAudio) valueAudio = new Audio('assets/audio/value-intro.mp3');
       valueAudio.currentTime = 0;
       valueAudio.play().then(() => {
         valuePlaying = true;
-        document.getElementById('vxPlayBtn').textContent = '⏸ 暂停讲述';
+        const b = document.getElementById('valueAudioBtn');
+        if (b) b.textContent = '⏸ 暂停朗读';
       }).catch(() => {
-        // MP3 缺失/自动播放被拒:降级浏览器语音(年迈嗓音)
         try {
           speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(VALUE_NARRATION);
-          u.lang = 'zh-CN'; u.rate = 0.82; u.pitch = 0.68;
+          const u = new SpeechSynthesisUtterance(VALUE_TEXT);
+          u.lang = 'zh-CN'; u.rate = 0.85; u.pitch = 0.7;
           const vs = speechSynthesis.getVoices().filter(v => /^zh/i.test(v.lang || ''));
           if (vs.length) u.voice = vs[0];
           speechSynthesis.speak(u);
           valuePlaying = true;
-          document.getElementById('vxPlayBtn').textContent = '⏸ 暂停讲述';
+          const b = document.getElementById('valueAudioBtn');
+          if (b) b.textContent = '⏸ 暂停朗读';
         } catch (e) {}
       });
     }
     function toggleValueNarration() {
-      const btn = document.getElementById('vxPlayBtn');
+      const b = document.getElementById('valueAudioBtn');
       if (valuePlaying) {
         if (valueAudio) valueAudio.pause();
         try { speechSynthesis.pause(); } catch (e) {}
         valuePlaying = false;
-        btn.textContent = '🔊 继续讲述';
+        if (b) b.textContent = '🔊 继续朗读';
       } else {
         if (valueAudio && valueAudio.currentTime > 0 && !valueAudio.ended) valueAudio.play().catch(() => {});
         else playValueNarration();
         try { speechSynthesis.resume(); } catch (e) {}
         valuePlaying = true;
-        btn.textContent = '⏸ 暂停讲述';
+        if (b) b.textContent = '⏸ 暂停朗读';
       }
     }
     function stopValueNarration() {
       if (valueAudio) valueAudio.pause();
       try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
       valuePlaying = false;
-      const btn = document.getElementById('vxPlayBtn');
-      if (btn) btn.textContent = '🔊 听我讲述';
+      const b = document.getElementById('valueAudioBtn');
+      if (b) { b.style.display = 'none'; b.textContent = '🔊'; }
     }
-    document.getElementById('vxPlayBtn').addEventListener('click', toggleValueNarration);
+    document.getElementById('valueAudioBtn').addEventListener('click', toggleValueNarration);
 
     // ===== 启动 =====
     initMap();
