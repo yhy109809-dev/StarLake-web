@@ -107,6 +107,20 @@ def main():
         out_paths.append(out)
         print("  ->", out)
 
+    # 模块四:徐霞客老者自述(年迈嗓音,control 指令控制,正文无前缀)
+    print("[模块四] 生成 value-intro ...")
+    wav = model.generate(
+        text="老朽徐霞客。三十余年，双屐丈量山河，足迹遍及大半个中国。有人问我，缘何如此执着？徐霞客游记，既是一部地理考察之作，更是一部山水文章——我将风土人情与胸中所感，尽数融入笔端。我又常年深入实地，细察山川地貌、水文岩溶，为后世留存真实的地理。以游记写山河，以足迹探自然，这便是我一生的价值。",
+        control_instruction="年迈男性，约八十岁，苍老沙哑的低沉嗓音，语速缓慢，有长者讲述往事的沧桑韵味",
+        reference_wav_path=os.path.join(OUT_DIR, "1636-jiangyin.wav"),
+        cfg_value=2.4,
+        inference_timesteps=10,
+    )
+    import soundfile as sf
+    vp = os.path.join(OUT_DIR, "value-intro.wav")
+    sf.write(vp, wav, model.tts_model.sample_rate)
+    print("  ->", vp)
+
     print("\n全部生成完毕!")
     if args.to_mp3:
         for p in out_paths:

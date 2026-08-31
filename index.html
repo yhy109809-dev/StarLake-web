@@ -1335,13 +1335,13 @@
 
     /* ===== 路线流光与节点呼吸(模块二/三通用,纯CSS) ===== */
     .rt-glow {
-      fill: none; stroke: rgba(255,236,190,0.95); stroke-width: 2.2;
-      stroke-linecap: round; stroke-dasharray: 16 340;
-      filter: drop-shadow(0 0 4px rgba(255,214,140,0.95));
-      animation: dashFlow 5.5s linear infinite;
+      fill: none; stroke: #ffe9b8; stroke-width: 4;
+      stroke-linecap: round; stroke-dasharray: 30 220;
+      filter: drop-shadow(0 0 6px rgba(255,208,120,1)) drop-shadow(0 0 14px rgba(255,190,90,0.8));
+      animation: dashFlow 3.2s linear infinite;
       pointer-events: none;
     }
-    @keyframes dashFlow { to { stroke-dashoffset: -356; } }
+    @keyframes dashFlow { to { stroke-dashoffset: -250; } }
     .pt, .pt-hot {
       transform-box: fill-box; transform-origin: center;
       animation: ptBreath 2.8s ease-in-out infinite;
@@ -1570,7 +1570,8 @@
     <!-- ==================== 第四章：文学与科学价值 ==================== -->
     <div class="value-panels" id="valuePanels">
       <!-- 徐霞客老者小人(第一人称讲述) -->
-      <div class="value-xiake">
+      <!-- 徐霞客老者小人(最右端,置于文字卡之后) -->
+      <div class="value-xiake" style="order:3">
         <svg viewBox="0 0 60 84" xmlns="http://www.w3.org/2000/svg">
         <ellipse cx="30" cy="80" rx="13" ry="2.5" fill="rgba(44,24,16,0.18)"/>
         <line x1="44" y1="38" x2="47" y2="76" stroke="#7a5b3a" stroke-width="2.4" stroke-linecap="round"/>
@@ -1592,8 +1593,8 @@
         <div class="vx-sub">亲述 · 生平价值</div>
         <button class="vx-btn" id="vxPlayBtn">🔊 听我讲述</button>
       </div>
-      <!-- 左侧：文学价值 -->
-      <div class="value-card value-literature">
+      <!-- 文学价值(order 1) -->
+      <div class="value-card value-literature" style="order:1">
         <span class="value-corner tl"></span>
         <span class="value-corner tr"></span>
         <span class="value-corner bl"></span>
@@ -1621,7 +1622,7 @@
         </p>
       </div>
       <!-- 右侧：科学价值 -->
-      <div class="value-card value-science">
+      <div class="value-card value-science" style="order:2">
         <span class="value-corner tl"></span>
         <span class="value-corner tr"></span>
         <span class="value-corner bl"></span>
