@@ -1651,7 +1651,7 @@
       <div id="introMapContainer" style="position:absolute;inset:0;"></div>
       <div class="early-map-tip" style="left:14px;bottom:12px;z-index:8;">滚轮缩放 · 拖拽平移</div>
     </div>
-    <div class="fullmap-wrap" id="valueMapWrap"><img src="assets/fullmap.png" alt="徐霞客一生游历总图"></div>
+    <div class="fullmap-wrap" id="valueMapWrap"><img src="assets/fullmap-value.png" alt="徐霞客一生游历总图"></div>
     <!-- ==================== 模块三：后期万里遐征（合并展示区 + 时间轴） ==================== -->
     <div class="late-wrap" id="lateWrap">
       <div class="late-title">后期万里遐征 · 1636—1640</div>
@@ -2702,14 +2702,14 @@
     ];
     // ===== 模块一:全国总图可缩放查看器(Leaflet CRS.Simple,懒初始化) =====
     let introMap = null;
-    const introBounds = [[0, 0], [-1491, 1055]]; // 新版全国总图 1055x1491
+    const introBounds = [[0, 0], [-1260, 1055]]; // 模块一裁剪版 1055x1260
     function ensureIntroMap() {
       if (introMap) return;
       introMap = L.map('introMapContainer', {
         crs: L.CRS.Simple, attributionControl: false, zoomControl: false,
         scrollWheelZoom: true, zoomSnap: 0.25, minZoom: -1, maxZoom: 2,
       });
-      L.imageOverlay('assets/fullmap.png', introBounds, { interactive: false, className: 'route-fade' }).addTo(introMap);
+      L.imageOverlay('assets/fullmap-intro.png', introBounds, { interactive: false, className: 'route-fade' }).addTo(introMap);
       introMap.fitBounds(introBounds, { animate: false });
     }
 
